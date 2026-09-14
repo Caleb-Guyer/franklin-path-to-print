@@ -55,7 +55,11 @@ No external summaries or biographical sources were used for game facts. Uncertai
 
 ## Publish to GitHub Pages
 
-The repository is prepared locally. Automatic remote publishing was unavailable on the build machine because **GitHub CLI was not installed**. No remote repository or public URL is claimed.
+Repository: [Caleb-Guyer/franklin-path-to-print](https://github.com/Caleb-Guyer/franklin-path-to-print).
+
+Game: [Franklin: The Path to Print](https://caleb-guyer.github.io/franklin-path-to-print/). GitHub Actions publishes verified updates from `main`; [deployment status](https://github.com/Caleb-Guyer/franklin-path-to-print/actions/workflows/deploy.yml) is available in the repository.
+
+The instructions below also support publishing your own copy.
 
 ### Windows: prepared publishing script
 

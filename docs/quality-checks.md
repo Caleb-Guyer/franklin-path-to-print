@@ -34,4 +34,4 @@ Desktop and phone screenshots inspected for typography, contrast, clipping, spac
 - Free-form explanations can require honest self-assessment; the comparison and result screens identify it clearly.
 - The location diagram is schematic, not a geographical survey.
 - Browser storage can be cleared by the browser or user. Export/import is provided.
-- Hosting has been tested locally with real production output at both supported subpaths. Remote deployment awaits installation/authentication of GitHub CLI; it has not been claimed as completed.
+- Hosting has been tested locally with real production output at both supported subpaths. GitHub Actions checks and deploys `main`; the current remote result is recorded in the repository's workflow history.
