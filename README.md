@@ -12,7 +12,7 @@ A complete, local-first narrative learning game built for a detailed quiz on **t
 - **12 chronological story chapters, 60 playable scenes**, and a recall boss trial at each chapter’s end.
 - **252 source-linked memory cards**, 66 character profiles and an interactive relationship web, a 60-item timeline, and a schematic location map.
 - Historical decisions with a separate personal-choice mode; the source’s outcomes stay fixed. Dialogue reconstruction is explicitly labeled paraphrase.
-- Quiz Tomorrow: Easy, Normal, Hard, Nightmare, 10/20/40-question rounds and Everything. A separate balanced **20-question Final Exam** spans all 12 chapters and mixes recall, relationships, books, places, ideas, matching and ordering.
+- Quiz: Easy, Normal, Hard, Nightmare, 10/20/40-question rounds and Everything. A separate balanced **20-question Final Exam** spans all 12 chapters and mixes recall, relationships, books, places, ideas, matching and ordering.
 - Franklin’s Trouble List, weighted review, confidence, due dates, mastery, XP, levels, streaks, combos and eight achievements.
 - Flashcards and character, chronology, people, place, publication/book, virtue/idea and obscure-detail drills.
 - Browser saves, save export/import, confirmed reset, optional synthesized sound, reduced motion, large text, keyboard ordering controls and mobile navigation.
@@ -36,7 +36,7 @@ npm run preview
 
 The production site is the `dist/` directory. Serve it through HTTP; opening `index.html` directly with a `file:` URL is not supported.
 
-### For a quiz tomorrow
+### A suggested study session
 
 1. Take the Final Exam to find weak areas immediately; story completion is not required.
 2. Read every missed answer and its scan, then use **Retry missed**.

@@ -267,7 +267,7 @@ export const achievementDefinitions = [
     'Master all 252 factual questions with three correct answers in a row.',
   ],
   ['survivor', 'Part One Survivor', 'Complete all twelve chapters and their trials.'],
-  ['tomorrow', 'The Quiz Is Tomorrow', 'Score at least 90% on a 20-question final exam.'],
+  ['tomorrow', 'Exam Master', 'Score at least 90% on a 20-question final exam.'],
   ['streak', 'An Unbroken Line', 'Reach ten correct answers in a row.'],
 ];
 export function award(save: Save): Save {

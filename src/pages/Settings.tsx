@@ -33,22 +33,13 @@ export default function Settings() {
   }
   return (
     <div className="page">
-      <PageTitle
-        eyebrow="SET YOUR COMPOSING ROOM IN ORDER"
-        title="Settings & the source"
-        description="Tune the experience, protect your progress, and inspect the pages behind the game."
-      />
+      <PageTitle title="Settings & the source" />
       <div className="settings-grid">
         <section className="panel">
           <div className="eyebrow">YOUR EXPERIENCE</div>
           {(
             [
-              [
-                'sound',
-                'Subtle sound effects',
-                'Optional tones created in the browser. No audio services.',
-                Volume2,
-              ],
+              ['sound', 'Subtle sound effects', 'Play a tone after each answer.', Volume2],
               [
                 'reducedMotion',
                 'Reduce motion',

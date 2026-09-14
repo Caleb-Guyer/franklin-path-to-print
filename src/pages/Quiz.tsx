@@ -120,7 +120,7 @@ export default function Quiz({
     setCombo(c);
     setBestCombo(Math.max(bestCombo, c));
   }
-  function tomorrow() {
+  function startExam() {
     begin({
       title: 'Final Exam',
       pool: questions,
@@ -148,13 +148,12 @@ export default function Quiz({
     return (
       <div className="page results-page">
         <PageTitle
-          eyebrow="THE IMPRESSION IS COMPLETE"
           title={
             session.bossChapter
               ? won
                 ? 'Trial overcome'
                 : 'The trial awaits a rematch'
-              : 'Your examination, marked'
+              : 'Results'
           }
           description={session.title}
         />
@@ -171,17 +170,11 @@ export default function Quiz({
             <em>{grade}</em>
           </div>
           <div className="results-summary">
-            <h2>
-              {rate >= 0.9
-                ? 'The details are becoming yours.'
-                : rate >= 0.6
-                  ? 'A solid impression. Strengthen the faint lines.'
-                  : 'You have found exactly where to study.'}
-            </h2>
+            <h2>{failed.length ? 'Review missed answers' : 'All answers correct'}</h2>
             <p>
               {failed.length
-                ? `${failed.length} missed questions are ready for a targeted rematch.`
-                : 'Every answer landed. A harder round can test the finer details.'}
+                ? `${failed.length} questions added to your review.`
+                : 'Try a harder round to continue.'}
             </p>
             <div className="stat-row">
               <div>
@@ -292,7 +285,7 @@ export default function Quiz({
           </section>
         </div>
         <section className="missed-review">
-          <h2>{failed.length ? 'Every missed impression' : 'Your complete answer review'}</h2>
+          <h2>{failed.length ? 'Missed questions' : 'Answer review'}</h2>
           {(failed.length ? failed : report.answers).map((a, i) => {
             const q = questionById[a.questionId];
             return (
@@ -347,11 +340,6 @@ export default function Quiz({
           <div className="boss-sigil">{boss ? <Skull size={35} /> : <FeatherIcon />}</div>
           <div>
             <h1>{session.title}</h1>
-            <p>
-              {boss
-                ? 'Your recall is the only weapon you need.'
-                : 'Close the book. Make the memory hold.'}
-            </p>
           </div>
           <span className="question-count">
             {index + 1}
@@ -424,10 +412,9 @@ export default function Quiz({
             if (index === round.length - 1) finish();
             else setIndex(index + 1);
           }}
-          continueLabel={index === round.length - 1 ? 'See the results' : 'Next impression'}
+          continueLabel={index === round.length - 1 ? 'See the results' : 'Next question'}
         />
         <div className="round-bottom">
-          <span>Every answer leaves a trace. Weak concepts return more often.</span>
           <span>
             {correct} correct · {wrong} missed
           </span>
@@ -438,36 +425,17 @@ export default function Quiz({
   return (
     <div className="page quiz-page">
       <PageTitle
-        eyebrow="PREPARE FOR THE MORNING"
-        title="The quiz is tomorrow."
-        description="Choose your trial. Recall the names, rebuild the journey, and make the details stick."
+        title="Quiz"
+        action={
+          <button className="button" onClick={startExam}>
+            Final exam · 20 questions
+            <ArrowRight size={17} />
+          </button>
+        }
       />
-      <div className="exam-feature">
-        <div className="exam-emblem">
-          <Swords size={44} />
-        </div>
-        <div>
-          <div className="eyebrow">THE FRANKLIN FINAL EXAM</div>
-          <h2>One life. Twenty questions.</h2>
-          <p>
-            A balanced examination across all twelve chapters: people, chronology, books, places,
-            decisions and the details between.
-          </p>
-          <div className="tag-row">
-            <span className="tag">20 questions</span>
-            <span className="tag">All 12 chapters</span>
-            <span className="tag">Mostly active recall</span>
-          </div>
-        </div>
-        <button className="button primary" onClick={tomorrow}>
-          Enter the final exam
-          <ArrowRight size={18} />
-        </button>
-      </div>
       <div className="quiz-layout">
         <section className="panel round-builder">
-          <div className="eyebrow">FORGE YOUR OWN TRIAL</div>
-          <h2>How deep will you go?</h2>
+          <h2>Choose a round</h2>
           <div className="difficulty-options">
             {(['EASY', 'NORMAL', 'HARD', 'NIGHTMARE'] as const).map((d, i) => (
               <button
@@ -519,7 +487,7 @@ export default function Quiz({
             </label>
           </div>
           <div className="builder-foot">
-            <span>{count} distinct questions · weak concepts weighted first</span>
+            <span>{count} questions</span>
             <button
               className="button primary"
               disabled={count === 0}
@@ -527,7 +495,7 @@ export default function Quiz({
                 begin({
                   title:
                     length === 'all'
-                      ? 'The Complete Impression'
+                      ? 'Full review'
                       : `${difficulty[0] + difficulty.slice(1).toLowerCase()} Trial`,
                   pool: eligible,
                   count,
@@ -576,19 +544,13 @@ export default function Quiz({
             FRANKLIN’S TROUBLE LIST
           </div>
           <strong className="big-number">{missed.length}</strong>
-          <h3>
-            {missed.length ? 'Details asking for another impression.' : 'A clean composing stone.'}
-          </h3>
-          <p>
-            {missed.length
-              ? 'Every miss is saved here. Two consecutive correct answers clear a question; three mark it mastered.'
-              : 'Miss a question and it will return here for a targeted review. New concepts still need practice.'}
-          </p>
+          <h3>{missed.length ? 'Questions to review' : 'No missed questions'}</h3>
+
           <button
             className="button"
             onClick={() =>
               begin({
-                title: missed.length ? 'Trouble List Rematch' : 'First Impressions',
+                title: missed.length ? 'Trouble List Rematch' : 'Quick review',
                 pool: missed.length ? missed : questions,
                 count: missed.length ? Math.min(20, missed.length) : 10,
                 difficulty: 'NORMAL',
@@ -596,17 +558,17 @@ export default function Quiz({
             }
           >
             <RotateCcw size={16} />
-            {missed.length ? 'Review weak memories' : 'Build a quick review'}
+            {missed.length ? 'Review missed' : 'Quick review'}
           </button>
           <a className="text-link" href="#study">
             <BookOpen size={14} />
             Open Study Mode
             <ArrowRight size={14} />
           </a>
-          <div className="recent-exams">
-            <div className="eyebrow">RECENT IMPRESSIONS</div>
-            {save.exams.length ? (
-              save.exams
+          {save.exams.length > 0 && (
+            <div className="recent-exams">
+              <div className="eyebrow">RECENT RESULTS</div>
+              {save.exams
                 .slice(-3)
                 .reverse()
                 .map((e) => (
@@ -617,11 +579,9 @@ export default function Quiz({
                     </span>
                     <strong>{Math.round((e.score / e.total) * 100)}%</strong>
                   </div>
-                ))
-            ) : (
-              <p className="small muted">Your first completed round will be recorded here.</p>
-            )}
-          </div>
+                ))}
+            </div>
+          )}
         </aside>
       </div>
     </div>

@@ -6,7 +6,6 @@ import {
   Feather,
   Flame,
   GraduationCap,
-  Landmark,
   Map,
   Medal,
   Menu,
@@ -27,9 +26,9 @@ import Quiz, { bossConfig, type SessionConfig } from './pages/Quiz';
 import { Characters, Collection, Journal, LocationMap, Study, Timeline } from './pages/Library';
 import SettingsPage from './pages/Settings';
 const nav = [
-  ['home', 'The study', Feather],
-  ['story', 'Your journey', Compass],
-  ['quiz', 'Quiz tomorrow', Swords],
+  ['home', 'Home', Feather],
+  ['story', 'Story', Compass],
+  ['quiz', 'Quiz', Swords],
   ['journal', 'Memory journal', BookOpen],
   ['timeline', 'Timeline', ScrollText],
   ['characters', 'Characters', Users],
@@ -186,7 +185,6 @@ function AppShell() {
             TO PRINT
           </span>
         </a>
-        <div className="nav-label">PART ONE · THE APPRENTICE</div>
         <nav aria-label="Game sections">
           {nav.map(([id, label, Icon]) => (
             <a
@@ -197,18 +195,9 @@ function AppShell() {
             >
               <Icon size={18} />
               <span>{label}</span>
-              {id === 'quiz' && <i className="tiny-dot" />}
             </a>
           ))}
         </nav>
-        <div className="sidebar-foot">
-          <div className="seal">
-            <Landmark size={22} />
-          </div>
-          <span>
-            One life. Every detail.<small>Your progress stays on this device.</small>
-          </span>
-        </div>
       </aside>
       <main className="main" id="main-content" tabIndex={-1}>
         <header className="topbar">
@@ -220,9 +209,7 @@ function AppShell() {
           >
             {menu ? <X size={21} /> : <Menu size={21} />}
           </button>
-          <div className="breadcrumb">
-            THE AUTOBIOGRAPHY <span>/</span> PART ONE
-          </div>
+          <div className="breadcrumb">Part One</div>
           <div className="player-meta">
             <span>
               <Flame size={16} />
@@ -287,11 +274,6 @@ function AppShell() {
             <SettingsPage />
           )}
         </div>
-        <footer className="app-footer">
-          <span>FRANKLIN · THE PATH TO PRINT</span>
-          <a href="#settings">The source: 27 visually inspected PDF spreads</a>
-          <span>Saved locally · No account required</span>
-        </footer>
       </main>
     </div>
   );
@@ -305,94 +287,41 @@ function Home() {
         <img
           className="hero-art"
           src={import.meta.env.BASE_URL + 'press-room.svg'}
-          alt="Original imagined illustration of a lamplit printing room overlooking a harbor"
+          alt="An imagined lamplit printing room overlooking a harbor"
         />
         <div className="hero-shade" />
-        <div className="ink-motes" aria-hidden="true">
-          {Array.from({ length: 8 }, (_, i) => (
-            <i key={i} style={{ left: 48 + i * 6 + '%', animationDelay: -i * 2.3 + 's' }} />
-          ))}
-        </div>
         <div className="hero-copy">
-          <div className="eyebrow">
-            <span />A LIFE WRITTEN IN INK
-          </div>
           <h1>
             FRANKLIN<span>THE PATH TO PRINT</span>
           </h1>
           <p className="subtitle">Part One — The Apprentice</p>
-          <div className="hero-rule" />
-          <div className="mission">
-            <small>YOUR MISSION</small>
-            <p>
-              Survive Part One.
-              <br />
-              Remember everyone.
-              <br />
-              <em>Remember everything.</em>
-            </p>
+          <div className="home-actions">
+            <a className="button primary journey-button" href="#story">
+              <Compass size={19} />
+              {save.completedEvents.length ? 'Continue story' : 'Begin story'}
+              <ArrowRight size={18} />
+            </a>
+            <a className="button" href="#quiz">
+              Quiz
+              <ArrowRight size={17} />
+            </a>
           </div>
-          <p className="muted hero-note">
-            Be ready for tomorrow.
-            <br />
-            Your next chapter begins with what you remember.
-          </p>
-          <a className="button primary journey-button" href="#story">
-            <Compass size={20} />
-            {save.completedEvents.length ? 'Continue journey' : 'Begin your journey'}
-            <ArrowRight size={19} />
-          </a>
-          <a className="text-link" href="#quiz">
-            The quiz is tomorrow. Take me to the trials
-            <ArrowRight size={15} />
-          </a>
-          <button className="new-journey" onClick={reset}>
-            New journey
-          </button>
-        </div>
-        <div className="art-caption">
-          THE PRINT ROOM<span>AN ORIGINAL, IMAGINED SCENE</span>
+          {save.completedEvents.length > 0 && (
+            <button className="new-journey" onClick={reset}>
+              New journey
+            </button>
+          )}
         </div>
       </section>
-      <section className="home-bottom">
-        <div className="next-chapter">
-          <span className="roman">{roman(chapter.id)}</span>
+      <section className="home-chapters">
+        <div className="chapters-heading">
           <div>
-            <div className="eyebrow">YOUR NEXT CHAPTER</div>
-            <h2>{chapter.title}</h2>
-            <p>{chapter.subtitle}</p>
-            <div className="home-progress">
-              <Progress value={(save.completedChapters.length / 12) * 100} />
-              <span>{save.completedChapters.length} / 12 chapters complete</span>
-            </div>
+            <h2>Chapters</h2>
+            <p>{chapter.title}</p>
           </div>
-          <a href="#story" className="circle-button" aria-label="Open story">
-            <ArrowRight />
-          </a>
-        </div>
-        <div className="quick-panels">
-          <a href="#quiz">
-            <Swords />
-            <div>
-              <h3>Quiz tomorrow</h3>
-              <p>{questions.length} questions. Make every detail count.</p>
-            </div>
-            <ArrowRight size={17} />
-          </a>
-          <a href="#journal">
-            <BookOpen />
-            <div>
-              <h3>Your memory journal</h3>
-              <p>People, pages, and the threads between them.</p>
-            </div>
-            <ArrowRight size={17} />
-          </a>
-        </div>
-      </section>
-      <section className="home-lower">
-        <div>
-          <div className="eyebrow">THE JOURNEY IN TWELVE CHAPTERS</div>
-          <h2>From the first spark to the final page.</h2>
+          <span>
+            {save.completedChapters.length} / {chapters.length} complete
+          </span>
         </div>
         <div className="journey-track">
           {chapters.map((c) => (
@@ -418,23 +347,6 @@ function Home() {
               <small>{c.title}</small>
             </a>
           ))}
-        </div>
-        <div className="home-lower-links">
-          <a href="#study">
-            <Sparkles size={17} />
-            Rehearse with flashcards
-            <ArrowRight size={15} />
-          </a>
-          <a href="#exam">
-            <GraduationCap size={19} />
-            Take the final exam
-            <ArrowRight size={15} />
-          </a>
-          <a href="#map">
-            <Map size={17} />
-            Explore the places
-            <ArrowRight size={15} />
-          </a>
         </div>
       </section>
     </>

@@ -45,9 +45,8 @@ export function Collection() {
   return (
     <div className="page">
       <PageTitle
-        eyebrow="THE COLLECTOR’S CABINET"
-        title="Memory, in your hands."
-        description={`${save.unlockedCards.length} of ${cards.length} cards discovered. Each impression belongs to a page in the original scan.`}
+        title="Collection"
+        description={`${save.unlockedCards.length} / ${cards.length} cards unlocked`}
       />
       <div className="library-toolbar">
         <label className="search-box">
@@ -89,11 +88,7 @@ export function Collection() {
       {!filtered.length ? (
         <div className="empty-panel">
           <BookOpen size={40} />
-          <h2>
-            {search
-              ? 'No impressions match that search.'
-              : 'Your cabinet is waiting for its first impression.'}
-          </h2>
+          <h2>{search ? 'No matching cards.' : 'No cards unlocked yet.'}</h2>
           <p>
             Playing scenes and answering questions unlocks cards. To study the entire excerpt now,
             turn on Study all cards.
@@ -221,11 +216,7 @@ export function Journal({ start }: { start: Start }) {
     .sort((a, b) => priority(b, save) - priority(a, save));
   return (
     <div className="page">
-      <PageTitle
-        eyebrow="A RECORD OF WHAT REMAINS"
-        title="The memory journal"
-        description="The people, choices and details you have encountered. Return to the faint impressions first."
-      />
+      <PageTitle title="Memory journal" />
       <div className="journal-stats">
         <div>
           <BookOpen />
@@ -258,15 +249,12 @@ export function Journal({ start }: { start: Start }) {
             <h3>
               {weak.length ? `${weak.length} memories to strengthen` : 'No missed questions yet'}
             </h3>
-            <p>
-              Misses remain until two consecutive correct answers. Mastery requires three.
-              Confidence and due time also guide the next review.
-            </p>
+            <p>Two correct recalls clear a miss. Three establish mastery.</p>
             <button
               className="button"
               onClick={() =>
                 start({
-                  title: weak.length ? 'Trouble List Rematch' : 'First Impressions',
+                  title: weak.length ? 'Trouble List Rematch' : 'Quick review',
                   pool: weak.length ? weak : questions,
                   count: Math.min(20, weak.length || 10),
                   difficulty: 'NORMAL',
@@ -364,9 +352,8 @@ export function Characters() {
   return (
     <div className="page">
       <PageTitle
-        eyebrow="REMEMBER WHO BELONGS TO WHOM"
-        title="The people behind the pages"
-        description={`${characters.length} source-linked profiles. Connections appear as their memories are discovered.`}
+        title="Characters"
+        description={`${characters.length} profiles · Details unlock as you play.`}
       />
       <div className="library-toolbar">
         <label className="search-box">
@@ -419,7 +406,7 @@ export function Characters() {
                 <strong>To Franklin:</strong> {chosen.relation}
               </p>
               <div className="character-web">
-                <div className="eyebrow">THE RELATIONSHIP WEB · SELECT A NAME</div>
+                <div className="eyebrow">RELATIONSHIPS</div>
                 <div className="web-root">
                   <span className="portrait mini">BF</span>
                   <span>Benjamin Franklin</span>
@@ -493,9 +480,8 @@ export function Timeline({ start }: { start: Start }) {
   return (
     <div className="page">
       <PageTitle
-        eyebrow="ONE EVENT MAKES ROOM FOR THE NEXT"
-        title="The thread of a life"
-        description="Trace the sequence, then rebuild it from memory. Dates are shown only at the precision supported by the excerpt."
+        title="Timeline"
+        description="Dates follow the precision of the source."
         action={
           <button
             className="button primary"
@@ -585,9 +571,8 @@ export function LocationMap({ start }: { start: Start }) {
   return (
     <div className="page">
       <PageTitle
-        eyebrow="THE PLACES THAT HOLD THE STORY"
-        title="Across an ocean of possibilities"
-        description="Follow the connections between places. This is a stylized route diagram; positions and distances are illustrative."
+        title="Locations"
+        description="A schematic map; distances and positions are illustrative."
       />
       <div className="map-layout">
         <div className="map-board">
@@ -623,7 +608,6 @@ export function LocationMap({ start }: { start: Start }) {
           </div>
         </div>
         <section className="place-panel" key={l.id}>
-          <div className="eyebrow">A PLACE IN THE NARRATIVE</div>
           <h2>{l.name}</h2>
           <p>{l.subtitle}</p>
           <div className="tag-row">
@@ -692,11 +676,7 @@ export function Study({ start }: { start: Start }) {
   ] as const;
   return (
     <div className="page">
-      <PageTitle
-        eyebrow="STUDY WITH THE BOOK CLOSED"
-        title="The rehearsal room"
-        description="Say it aloud or write it down before you turn the card. Recognition is only the beginning."
-      />
+      <PageTitle title="Study" description="Recall the answer before turning the card." />
       <div className="study-layout">
         <section>
           <div className="library-toolbar">
@@ -736,13 +716,9 @@ export function Study({ start }: { start: Start }) {
             <div className="eyebrow">
               {card.category} · CHAPTER {roman(card.chapter)}
             </div>
-            <span className="flash-ornament">✦</span>
+
             <h2>{flipped ? card.answer : card.prompt}</h2>
-            {flipped ? (
-              <p>{card.details}</p>
-            ) : (
-              <span className="flash-instruction">Recall first. Then turn the card.</span>
-            )}
+            {flipped ? <p>{card.details}</p> : null}
             <small>
               {flipped ? 'Click to return to the question' : 'Click or press Enter to turn'}
             </small>
@@ -772,10 +748,7 @@ export function Study({ start }: { start: Start }) {
               <ArrowRight size={16} />
             </button>
           </div>
-          <p className="small muted">
-            Turning a card does not award mastery. Use a scored drill to test and record what you
-            can recall.
-          </p>
+          <p className="small muted">Drills record mastery; flashcards are unscored.</p>
         </section>
         <aside className="drill-list">
           <div className="eyebrow">ACTIVE RECALL DRILLS</div>
@@ -819,7 +792,7 @@ export function Study({ start }: { start: Start }) {
             );
           })}
           <div className="panel">
-            <div className="eyebrow">DUE FOR ANOTHER IMPRESSION</div>
+            <div className="eyebrow">DUE FOR REVIEW</div>
             <h3>
               {
                 questions.filter(
@@ -828,9 +801,6 @@ export function Study({ start }: { start: Start }) {
               }{' '}
               questions ready
             </h3>
-            <p className="small">
-              Review uses confidence, time, streaks and repeated mistakes to choose what comes next.
-            </p>
           </div>
         </aside>
       </div>

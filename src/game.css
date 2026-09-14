@@ -3711,3 +3711,233 @@ option {
   margin-top: 22px;
   justify-content: center;
 }
+/* Compact game menus; the source material is the focus. */
+.sidebar nav a {
+  font-size: 14px;
+}
+.topbar .breadcrumb {
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+.home-hero {
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+}
+.home-hero .hero-copy {
+  max-width: 690px;
+  padding: 52px 44px;
+}
+.home-hero h1 {
+  margin: 0;
+  font-size: clamp(50px, 5.5vw, 80px);
+}
+.home-hero .subtitle {
+  margin-top: 23px;
+  font-size: 19px;
+}
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 35px;
+}
+.home-actions .button {
+  margin: 0;
+  min-height: 48px;
+  font-size: 14px;
+}
+.home-actions .journey-button {
+  width: auto;
+  min-width: 210px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.home-chapters {
+  padding: 30px 44px 40px;
+}
+.chapters-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.chapters-heading h2 {
+  font-size: 26px;
+}
+.chapters-heading p {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.chapters-heading > span {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.home-chapters .journey-track {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 24px 0 0;
+}
+.home-chapters .journey-track a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  min-height: 66px;
+}
+.home-chapters .journey-track a:after {
+  display: none;
+}
+.home-chapters .journey-track span {
+  margin: 0;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+}
+.home-chapters .journey-track small {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.home-chapters .journey-track .current {
+  border-color: #ad8a5355;
+  background: #e3b57508;
+}
+.home-chapters .journey-track .current small {
+  color: var(--gold2);
+}
+.home-chapters .journey-track a[href]:hover {
+  background: #e3b5750d;
+  border-color: #ad8a5380;
+}
+.page-title h1 {
+  margin: 0;
+}
+.page-title .eyebrow + h1 {
+  margin-top: 12px;
+}
+.page-title p {
+  margin-top: 12px;
+}
+.page-title > .button {
+  font-size: 13px;
+}
+.round-builder > h2 {
+  font-size: 27px;
+  margin-bottom: 24px;
+}
+.trouble-panel {
+  align-self: start;
+  display: block;
+}
+.trouble-panel > .big-number {
+  font-size: 40px;
+  margin: 22px 0 5px;
+}
+.trouble-panel h3 {
+  font:
+    14px/1.5 Arial,
+    sans-serif;
+  margin: 0 0 22px;
+  color: var(--muted);
+}
+.trouble-panel > .button {
+  width: 100%;
+}
+.trouble-panel > .text-link {
+  font-size: 12px;
+}
+.round-bottom {
+  justify-content: flex-end;
+}
+@media (max-width: 1100px) {
+  .home-chapters .journey-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .home-hero .hero-copy {
+    padding: 44px 30px;
+  }
+  .home-chapters {
+    padding: 28px 30px;
+  }
+}
+@media (max-width: 600px) {
+  .home-hero {
+    min-height: 340px;
+  }
+  .home-hero .hero-copy {
+    width: 100%;
+    padding: 38px 22px;
+  }
+  .home-hero h1 {
+    font-size: 49px;
+  }
+  .home-hero h1 span {
+    font-size: 10px;
+    letter-spacing: 4px;
+  }
+  .home-hero .subtitle {
+    font-size: 17px;
+    margin-top: 22px;
+  }
+  .home-actions {
+    gap: 9px;
+    margin-top: 30px;
+  }
+  .home-actions .button {
+    font-size: 13px;
+    min-height: 46px;
+    padding: 12px 14px;
+  }
+  .home-actions .journey-button {
+    min-width: 184px;
+  }
+  .home-chapters {
+    padding: 26px 20px 35px;
+  }
+  .chapters-heading {
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .chapters-heading h2 {
+    font-size: 25px;
+  }
+  .chapters-heading p {
+    font-size: 13px;
+  }
+  .chapters-heading > span {
+    font-size: 12px;
+    margin-top: 7px;
+  }
+  .home-chapters .journey-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .home-chapters .journey-track a {
+    gap: 9px;
+    padding: 12px 10px;
+    min-height: 75px;
+  }
+  .home-chapters .journey-track span {
+    width: 27px;
+    height: 27px;
+    font-size: 11px;
+  }
+  .home-chapters .journey-track small {
+    font-size: 12px;
+  }
+  .page-title > .button {
+    font-size: 12px;
+  }
+  .trouble-panel {
+    padding: 23px;
+  }
+}

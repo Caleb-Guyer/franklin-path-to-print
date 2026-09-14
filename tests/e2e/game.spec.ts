@@ -129,7 +129,7 @@ test('all sections render, source scans open, mobile layout stays within the vie
   });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await expect(page.locator('.sidebar')).toHaveClass(/open/);
-  await page.getByRole('link', { name: 'Quiz tomorrow', exact: true }).first().click();
+  await page.getByRole('link', { name: 'Quiz', exact: true }).first().click();
   await expect(page.locator('.sidebar')).not.toHaveClass(/open/);
   expect(errors).toEqual([]);
 });
@@ -232,9 +232,9 @@ test('production assets and hash refresh work under either GitHub Pages reposito
   for (const repo of ['franklin-path-to-print', 'franklin-part-one-game']) {
     const base = 'http://127.0.0.1:4174/' + repo + '/';
     await page.goto(base + '#characters');
-    await expect(page.locator('.page-title h1')).toContainText('people');
+    await expect(page.locator('.page-title h1')).toHaveText('Characters');
     await page.reload();
-    await expect(page.locator('.page-title h1')).toContainText('people');
+    await expect(page.locator('.page-title h1')).toHaveText('Characters');
     await page.goto(base + '#home');
     await expect(page.locator('.hero-art')).toHaveJSProperty('complete', true);
     expect((await request.get(base + 'source/Franklin-Part-One.pdf')).status()).toBe(200);

@@ -92,7 +92,6 @@ export default function Story({
       <PageTitle
         eyebrow={`CHAPTER ${roman(chapterId)} · ${chapter.place}`}
         title={chapter.title}
-        description={chapter.subtitle}
         action={
           <button className="button" onClick={() => setMapOpen(!mapOpen)}>
             <Compass size={17} />
@@ -176,10 +175,6 @@ export default function Story({
             <Swords size={15} />
             {chapter.boss}
           </button>
-          <p className="small muted">
-            A trial completes each chapter. Study Mode and Quiz Tomorrow can cover the whole excerpt
-            at any time.
-          </p>
         </aside>
         <div className="scene-content" key={scene.id}>
           {recalling ? (
@@ -187,9 +182,9 @@ export default function Story({
               <div className="recall-banner">
                 <Feather size={21} />
                 <div>
-                  <strong>The page is closed.</strong>
+                  <strong>Recall</strong>
                   <span>
-                    Recall {recallIndex + 1} of {picked.length} · Bring it back in your own words.
+                    {recallIndex + 1} / {picked.length}
                   </span>
                 </div>
               </div>
@@ -199,7 +194,7 @@ export default function Story({
                 onContinue={finishRecall}
                 continueLabel={
                   recallIndex < picked.length - 1
-                    ? 'One more impression'
+                    ? 'Next question'
                     : index < scenes.length - 1
                       ? 'Continue the story'
                       : 'Enter the chapter trial'

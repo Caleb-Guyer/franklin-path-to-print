@@ -273,9 +273,7 @@ export default function QuestionCard({
           <p>{q.explanation}</p>
           <Source pages={q.sourcePages} />
           <p className="small muted">
-            Names and dates use exact answers and listed alternatives. For explanations or different
-            wording, compare your answer with the source-backed answer above. This is a self-check,
-            not AI grading.
+            Different wording? Compare with the answer and source, then assess your response.
           </p>
           <div className="button-row">
             <button className="button" onClick={() => commit(false, true)}>
@@ -292,10 +290,8 @@ export default function QuestionCard({
         <div className="answer-reveal" aria-live="polite">
           <div className="feedback-title">
             {result.correct ? <Check size={20} /> : <X size={20} />}
-            <strong>{result.correct ? 'Impression made.' : 'Back to the composing stone.'}</strong>
-            <span>
-              {result.correct ? 'Knowledge strengthened' : 'Added to Franklin’s Trouble List'}
-            </span>
+            <strong>{result.correct ? 'Correct' : 'Incorrect'}</strong>
+            {!result.correct && <span>Added to the Trouble List</span>}
           </div>
           <h3>
             {q.type === 'order'
