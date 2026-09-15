@@ -15,6 +15,8 @@ import { questionById } from '../data/questions';
 import { useGame } from '../components/GameContext';
 import { PageTitle, Progress, Source, roman } from '../components/Common';
 import QuestionCard from '../components/QuestionCard';
+import Conversation from '../components/Conversation';
+import { VoiceButton } from '../components/Voice';
 import type { Event } from '../data/types';
 export default function Story({
   startBoss,
@@ -68,10 +70,6 @@ export default function Story({
       ? [scene.factIds[0], scene.factIds[Math.floor(scene.factIds.length / 2)]]
       : [scene.factIds[0]];
   const question = { ...questionById['q' + picked[recallIndex].slice(1)] };
-  if (question.type === 'choice') {
-    question.type = 'recall';
-    question.options = undefined;
-  }
   function finishRecall() {
     if (recallIndex < picked.length - 1) {
       setRecallIndex(recallIndex + 1);
@@ -223,7 +221,12 @@ export default function Story({
                 </div>
               </div>
               <div className="narration">
-                <p>{scene.narration}</p>
+                <Conversation
+                  key={scene.id}
+                  lines={[
+                    { speaker: 'Narrator', text: scene.narration, sourcePages: scene.sourcePages },
+                  ]}
+                />
                 <Source pages={scene.sourcePages} />
               </div>
               <div className="scene-facts">
@@ -238,6 +241,7 @@ export default function Story({
                       </summary>
                       <h3>{f.answer}</h3>
                       <p>{f.details}</p>
+                      <VoiceButton text={f.details} />
                       <Source pages={f.sourcePages} />
                     </details>
                   );
@@ -358,7 +362,10 @@ function Dialogue({
         DIALOGUE RECONSTRUCTION
       </div>
       <p className="speaker">{d.speaker}</p>
-      <blockquote>{d.line}</blockquote>
+      <Conversation
+        autoSpeak={false}
+        lines={[{ speaker: d.speaker, text: d.line, sourcePages: scene.sourcePages }]}
+      />
       <h3>{d.reply}</h3>
       <div className="story-options">
         {d.options.map((x, i) => (
@@ -374,6 +381,7 @@ function Dialogue({
             {selected === d.actual ? 'The meaning is intact.' : 'Revisit the exchange.'}
           </strong>
           <p>{d.significance}</p>
+          <VoiceButton text={d.significance} auto />
           <p className="small muted">
             All dialogue here is paraphrased from the cited source; it is not a verbatim quotation.
           </p>

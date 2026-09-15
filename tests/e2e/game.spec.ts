@@ -1,59 +1,18 @@
 import { test, expect, type Page } from '@playwright/test';
 import { questions } from '../../src/data/questions';
+import { multipleChoice } from '../../src/lib/choices';
 import { chapters, events } from '../../src/data/chapters';
 const saveKey = 'franklin-path-to-print-v1';
+const presentedQuestions = new Map(questions.map(multipleChoice).map((q) => [q.prompt, q]));
 async function answer(page: Page, correct = true) {
   const prompt = await page.locator('.question-card > h2').innerText();
-  const q = questions.find((q) => q.prompt === prompt);
+  const q = presentedQuestions.get(prompt);
   if (!q) throw new Error('No bank entry: ' + prompt);
-  const form = page.locator('.question-card form');
-  if (await form.locator('.order-item').count()) {
-    if (correct) {
-      for (let i = 0; i < q.sequence!.length; i++) {
-        for (let guard = 0; guard < 10; guard++) {
-          const order = await form.locator('.order-item > span:nth-of-type(2)').allTextContents();
-          const pos = order.indexOf(q.sequence![i]);
-          if (pos === i) break;
-          await page
-            .getByRole('button', { name: 'Move ' + q.sequence![i] + ' up', exact: true })
-            .click();
-        }
-      }
-    } else {
-      const order = await form.locator('.order-item > span:nth-of-type(2)').allTextContents();
-      if (order.join() === q.sequence!.join())
-        await form
-          .locator('.order-item')
-          .first()
-          .getByRole('button', { name: / down$/ })
-          .click();
-    }
-  } else if (await form.locator('.matching-list').count()) {
-    for (let i = 0; i < q.pairs!.length; i++) {
-      const [label, value] = q.pairs![i];
-      await form
-        .getByRole('combobox', { name: 'Match ' + label, exact: true })
-        .selectOption({ label: correct ? value : q.pairs![(i + 1) % q.pairs!.length][1] });
-    }
-  } else if (await form.getByRole('radio').count()) {
-    const options = await form.getByRole('radio').allTextContents();
-    const target = correct
-      ? q.answer
-      : options.map((x) => x.slice(1).trim()).find((x) => x !== q.answer)!;
-    await form
-      .getByRole('radio')
-      .nth(options.map((x) => x.slice(1).trim()).indexOf(target))
-      .click();
-  } else await form.getByRole('textbox').fill(correct ? q.answer : 'I do not remember this detail');
-  await page.getByRole('button', { name: 'Commit answer', exact: true }).click();
-  if (await page.getByRole('button', { name: 'I missed this', exact: true }).count())
-    await page
-      .getByRole('button', {
-        name: correct ? 'My answer means the same' : 'I missed this',
-        exact: true,
-      })
-      .click();
+  const options = await page.locator('.answer-option-text').allTextContents();
+  const target = correct ? q.answer : options.find((x) => x !== q.answer)!;
+  await page.getByRole('radio').nth(options.indexOf(target)).click();
   await expect(page.locator('.answer-reveal')).toBeVisible();
+  await expect(page.getByText('How sure are you?', { exact: true })).toHaveCount(0);
 }
 
 test('all sections render, source scans open, mobile layout stays within the viewport', async ({

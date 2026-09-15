@@ -45,6 +45,18 @@ export default function Settings() {
                 'Original music and movement effects while you play.',
                 Volume2,
               ],
+              [
+                'narration',
+                'Spoken dialogue',
+                'Read conversations, page memories and questions aloud.',
+                Volume2,
+              ],
+              [
+                'autoDialogue',
+                'Auto-advance dialogue',
+                'Move to the next short line when the voice finishes.',
+                BookOpen,
+              ],
               ['sound', 'Subtle sound effects', 'Play a tone after each answer.', Volume2],
               [
                 'reducedMotion',
@@ -55,7 +67,7 @@ export default function Settings() {
               [
                 'timed',
                 'Timed quiz rounds',
-                '45 seconds, or 90 for longer formats. Pause during a round.',
+                '45 seconds per question. Pause during a round.',
                 Clock,
               ],
               [

@@ -182,10 +182,6 @@ export default function Quiz({
                 <span>Best combo</span>
               </div>
               <div>
-                <strong>{report.answers.filter((a) => a.selfAssessed).length}</strong>
-                <span>Self-assessed answers</span>
-              </div>
-              <div>
                 <strong>{save.xp}</strong>
                 <span>Total XP</span>
               </div>
@@ -287,7 +283,10 @@ export default function Quiz({
         <section className="missed-review">
           <h2>{failed.length ? 'Missed questions' : 'Answer review'}</h2>
           {(failed.length ? failed : report.answers).map((a, i) => {
-            const q = questionById[a.questionId];
+            const original = questionById[a.questionId];
+            const q = a.prompt
+              ? { ...original, prompt: a.prompt, answer: a.answer ?? original.answer }
+              : original;
             return (
               <details key={i} open={failed.length > 0}>
                 <summary>{q.prompt}</summary>
@@ -517,8 +516,7 @@ export default function Quiz({
               }
             />
             <span>
-              Timed rounds{' '}
-              <small>45 seconds; 90 for ordering, matching and explanations. Pause anytime.</small>
+              Timed rounds <small>45 seconds per question. Pause anytime.</small>
             </span>
           </label>
           <button

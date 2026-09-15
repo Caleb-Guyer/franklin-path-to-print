@@ -4,6 +4,7 @@ import App from './App';
 import './styles.css';
 import './game.css';
 import './platformer.css';
+import './dialogue.css';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

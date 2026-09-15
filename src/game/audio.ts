@@ -10,10 +10,33 @@ export class GameAudio {
   private enabled = true;
   private effects = true;
   private noise?: AudioBuffer;
+  private paused = false;
+  private speaking = false;
+  constructor() {
+    window.addEventListener('franklin-speech', this.speechChanged);
+  }
+  private speechChanged = (event: Event) => {
+    this.speaking = (event as CustomEvent<boolean>).detail;
+    this.mix();
+  };
+  private mix() {
+    if (!this.context) return;
+    this.musicGain?.gain.setTargetAtTime(
+      this.enabled ? (this.speaking ? 0.022 : this.paused ? 0.045 : 0.16) : 0,
+      this.context.currentTime,
+      0.08,
+    );
+    this.effectsGain?.gain.setTargetAtTime(
+      this.effects ? (this.speaking ? 0.075 : 0.2) : 0,
+      this.context.currentTime,
+      0.08,
+    );
+  }
   start(music: boolean, effects: boolean, theme: number) {
     this.enabled = music;
     this.effects = effects;
     this.theme = theme;
+    this.paused = false;
     try {
       if (!this.context) {
         this.context = new AudioContext();
@@ -25,6 +48,7 @@ export class GameAudio {
       if (!this.musicGain || !this.effectsGain) return;
       this.musicGain.gain.value = music ? 0.16 : 0;
       this.effectsGain.gain.value = effects ? 0.2 : 0;
+      this.mix();
       void this.context.resume().catch(() => {});
       if (!this.interval) {
         this.next = this.context.currentTime + 0.06;
@@ -37,17 +61,11 @@ export class GameAudio {
   setMusic(enabled: boolean) {
     this.enabled = enabled;
     this.effects = enabled;
-    if (this.context && this.musicGain)
-      this.musicGain.gain.setTargetAtTime(enabled ? 0.16 : 0, this.context.currentTime, 0.08);
-    if (this.effectsGain) this.effectsGain.gain.value = enabled ? 0.2 : 0;
+    this.mix();
   }
   pause(paused: boolean) {
-    if (this.context && this.musicGain)
-      this.musicGain.gain.setTargetAtTime(
-        this.enabled ? (paused ? 0.045 : 0.16) : 0,
-        this.context.currentTime,
-        0.12,
-      );
+    this.paused = paused;
+    this.mix();
   }
   private tone(
     frequency: number,
@@ -156,6 +174,7 @@ export class GameAudio {
       );
   }
   dispose() {
+    window.removeEventListener('franklin-speech', this.speechChanged);
     if (this.interval) clearInterval(this.interval);
     this.interval = undefined;
     void this.context?.close().catch(() => {});

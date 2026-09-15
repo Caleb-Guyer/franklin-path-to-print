@@ -9,17 +9,18 @@ Play as Franklin in a **2D platform adventure**: leap across rooftops, dash thro
 ## What is inside
 
 - **12 platforming levels** with double jumps, air dash, bounce pads, moving platforms, ink creatures, safe checkpoints and optional upper routes. All 252 facts appear as collectible pages; all 60 scenes appear as conversation stops.
-- Original procedural music with chapter variations, movement and pickup sounds, rising page-streak tones and a saved mute switch. Audio starts after Play and uses no external files or services.
+- Original procedural music with chapter variations, movement and pickup sounds, rising page-streak tones and a saved mute switch. Music lowers automatically during speech.
+- **Spoken character conversations** with original animated pixel portraits, letter-by-letter text, moving key words, short lines, replay, skip and Auto/Hold controls. Collected page memories play while you move; questions, answer explanations and flashcards also have narration.
 - A compact hearts/pages HUD, keyboard and touch controls, saved chapter progress, replay, collectible completion and personal best times for runs started from the beginning. Study tools stay in the menu.
-- **272 questions**: 252 distinct factual prompts, 12 chronology challenges, and 8 matching challenges. Most questions require typed recall; Easy mode adds recognition practice.
+- **272 multiple-choice questions**: specific factual prompts, chronology and relationships. Choose an answer with one click or keys 1–4; it scores immediately, without a confidence rating. Distractors reuse real details from the source bank.
 - **12 chronological story chapters, 60 playable scenes**, and a recall boss trial at each chapter’s end.
 - **252 source-linked memory cards**, 66 character profiles and an interactive relationship web, a 60-item timeline, and a schematic location map.
 - Historical decisions with a separate personal-choice mode; the source’s outcomes stay fixed. Dialogue reconstruction is explicitly labeled paraphrase.
-- Quiz: Easy, Normal, Hard, Nightmare, 10/20/40-question rounds and Everything. A separate balanced **20-question Final Exam** spans all 12 chapters and mixes recall, relationships, books, places, ideas, matching and ordering.
-- Franklin’s Trouble List, weighted review, confidence, due dates, mastery, XP, levels, streaks, combos and eight achievements.
+- Quiz: Easy, Normal, Hard, Nightmare, 10/20/40-question rounds and Everything. A separate balanced **20-question Final Exam** spans all 12 chapters and mixes factual detail, relationships, books, places, ideas and chronology, all presented as multiple choice.
+- Franklin’s Trouble List, weighted review, due dates, mastery, XP, levels, streaks, combos and eight achievements.
 - Flashcards and character, chronology, people, place, publication/book, virtue/idea and obscure-detail drills.
-- Browser saves, save export/import, confirmed reset, optional synthesized sound, reduced motion, large text, keyboard ordering controls and mobile navigation.
-- Full source PDF and all 27 readable scan images available inside the game. No external fonts, images, audio, accounts or runtime APIs.
+- Browser saves, save export/import, confirmed reset, optional music and speech, reduced motion, large text, keyboard answer controls and mobile navigation.
+- Full source PDF and all 27 readable scan images available inside the game. No external fonts, images, accounts or backend. Music is synthesized locally; narration uses the browser’s speech engine.
 
 ## Controls
 
@@ -30,8 +31,9 @@ Play as Franklin in a **2D platform adventure**: leap across rooftops, dash thro
 | Dash                    | Shift or X            |
 | Talk / enter print shop | E or Enter            |
 | Pause                   | Escape                |
+| Answer a question       | 1 / 2 / 3 / 4         |
 
-Phones and tablets show touch controls. Collect pages along the route, talk to characters when you choose, and answer two short recall prompts at the chapter’s printing press. Missed answers feed the same adaptive review system as Quiz mode. Falls return you to your latest checkpoint. The Chapters menu shows remaining pages and personal bests.
+Phones and tablets show touch controls. Collect pages along the route, talk to characters when you choose, and answer two multiple-choice prompts at the chapter’s printing press. Missed answers feed the same adaptive review system as Quiz mode. Falls return you to your latest checkpoint. The Chapters menu shows remaining pages and personal bests.
 
 ## Play locally
 
@@ -54,11 +56,19 @@ The production site is the `dist/` directory. Serve it through HTTP; opening `in
 ### A suggested study session
 
 1. Take the Final Exam to find weak areas immediately; story completion is not required.
-2. Read every missed answer and its scan, then use **Retry missed**.
+2. Listen to or read missed-answer explanations, check their scans, then use **Retry missed**.
 3. Use **Study mode** and the journal’s **Study all entries** to reach every fact without story locks.
 4. Try Nightmare details and the chronology drill, then take another Final Exam.
 
-Typed names and dates use explicit accepted forms, normalized punctuation and token order. Different wording opens a comparison screen. The player must honestly mark whether the answer means the same; these answers are labeled **self-assessed** in results. No AI grading or fuzzy guessing is used. A miss stays on the Trouble List until two consecutive correct recalls; three establish mastery. Review weights repeated misses, confidence and elapsed time.
+Every question has one accepted choice and immediate feedback. A miss stays on the Trouble List until two consecutive correct answers; three establish mastery. Review weights repeated misses, streaks and elapsed time. The raw source bank retains its original question formats for auditing; the presentation layer converts chronology and matching into short, source-linked choice questions. Existing progress is preserved.
+
+### Spoken learning
+
+Conversations show one short beat at a time. **Reveal** finishes the text animation; **Next** advances; **Replay** repeats the voice. **Auto** advances after speech finishes, while **Hold** waits for you. The speaker button controls narration separately from music. Settings save both preferences. Reduced motion shows the complete line immediately and disables portrait/text animation.
+
+Narration uses available English device/browser voices and prefers local voices. Voice quality and availability vary by device; readable dialogue, skip controls and all gameplay remain available if speech is unsupported. A user gesture starts audio. No API key, voice account or external audio service is configured. Spoken lines preserve the source-backed wording and remain labeled as paraphrases where appropriate.
+
+![Spoken character dialogue](docs/screenshots/dialogue.png)
 
 ## Canonical source and accuracy
 
@@ -121,23 +131,24 @@ npm run check
 npm run test:e2e
 ```
 
-`check` runs formatting, TypeScript, 25 unit/data/physics tests and the production build. Ten browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
+`check` runs formatting, TypeScript, 30 unit/data/physics/speech-format tests and the production build. Thirteen browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
 
-Browser tests play a full platformer level through the actual movement inputs, test music synthesis, keyboard and touch movement, pause, NPC conversations, saved pickups and chapter advancement. They also cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
+Browser tests play a full platformer level through the actual movement inputs, test music synthesis, keyboard and touch movement, pause, NPC conversations, saved pickups and chapter advancement. Voice tests verify line reveal, replay, auto/hold, cancellation, music ducking, immediate choice scoring, no confidence step and speech-unavailable fallback. They also cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
 
 ## Project structure
 
 ```text
 src/
   data/           Facts, questions, chapters, events, people, places, cards
-  components/     Save provider, accessible dialogs, source viewer, recall forms
+  components/     Save provider, accessible dialogs, source viewer, choice questions and animated conversations
   game/           Canvas renderer, movement physics, worlds and original Web Audio music
   pages/          Platformer, story journal, quiz/bosses, library tools and settings
-  lib/            Grading, adaptive review, saves, achievements and tests
+  lib/            Choice conversion, speech, grading, adaptive review, saves and tests
   App.tsx         Hash navigation and optional WebMCP integration
   styles.css      Main visual design
   game.css        Study screens and responsive layouts
   platformer.css  Minimal game HUD, title screen, overlays and touch controls
+  dialogue.css    Talking portraits, typewriter text and compact speech controls
 public/
   source/         Canonical PDF and all 27 scan images
   press-room.svg  Original decorative artwork

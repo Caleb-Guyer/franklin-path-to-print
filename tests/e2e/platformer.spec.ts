@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { questions } from '../../src/data/questions';
+import { multipleChoice } from '../../src/lib/choices';
 import type { PlatformGame } from '../../src/game/platformer';
 
 declare global {
@@ -9,6 +10,7 @@ declare global {
   }
 }
 const saveKey = 'franklin-path-to-print-v1';
+const presentedQuestions = new Map(questions.map(multipleChoice).map((q) => [q.prompt, q]));
 async function observeGame(page: Page) {
   // Attach read access in the test browser only; the shipped game has no test shortcuts.
   await page.evaluate(async () => {
@@ -32,18 +34,9 @@ async function play(page: Page) {
 }
 async function answerPress(page: Page) {
   const prompt = await page.locator('.question-card > h2').innerText();
-  const q = questions.find((q) => q.prompt === prompt)!;
-  const form = page.locator('.question-card form');
-  if (await form.getByRole('radio').count()) {
-    const options = await form.getByRole('radio').allTextContents();
-    await form
-      .getByRole('radio')
-      .nth(options.map((s) => s.slice(1).trim()).indexOf(q.answer))
-      .click();
-  } else await form.getByRole('textbox').fill(q.answer);
-  await page.getByRole('button', { name: 'Commit answer', exact: true }).click();
-  if (await page.getByRole('button', { name: 'My answer means the same', exact: true }).count())
-    await page.getByRole('button', { name: 'My answer means the same', exact: true }).click();
+  const q = presentedQuestions.get(prompt)!;
+  const options = await page.locator('.answer-option-text').allTextContents();
+  await page.getByRole('radio').nth(options.indexOf(q.answer)).click();
   await page.locator('.next-answer').click();
 }
 
@@ -99,12 +92,16 @@ test('keyboard movement, source conversations, audio, pause, and saved pickups w
   await page.waitForTimeout(250);
   expect(await page.evaluate(() => window.platformTestGame.elapsed)).toBe(pausedAt);
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
-  await page.getByRole('button', { name: 'Mute game audio', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Enable game audio', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Mute music and effects', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Enable music and effects', exact: true }),
+  ).toBeVisible();
   await page.screenshot({ path: 'test-results/platformer-desktop.png' });
   await page.reload();
   await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Enable game audio', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Enable music and effects', exact: true }),
+  ).toBeVisible();
   expect(errors).toEqual([]);
 });
 

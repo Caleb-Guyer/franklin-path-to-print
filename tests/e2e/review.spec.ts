@@ -13,21 +13,19 @@ test('Everything includes the complete bank; Easy recognition and optional timer
   await page.getByRole('button', { name: 'Begin trial', exact: true }).click();
   await expect(page.getByRole('radio')).toHaveCount(4);
   await page.getByRole('button', { name: 'Pause timer', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Commit answer' })).toBeDisabled();
   await expect(page.getByRole('radio').first()).toBeDisabled();
   const paused = await page.locator('.timer').innerText();
   await page.waitForTimeout(1200);
   expect(await page.locator('.timer').innerText()).toBe(paused);
   await page.getByRole('button', { name: 'Resume timer', exact: true }).click();
   await page.getByRole('radio').first().click();
-  await expect(page.getByRole('button', { name: 'Commit answer' })).toBeEnabled();
+  await expect(page.locator('.answer-reveal')).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
     path: 'test-results/arena-mobile.png',
     fullPage: true,
     animations: 'disabled',
   });
-  await page.getByRole('button', { name: 'Commit answer', exact: true }).click();
   await expect(page.locator('.answer-reveal')).toBeVisible();
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('franklin-path-to-print-v1')!),

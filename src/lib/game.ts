@@ -1,6 +1,7 @@
 import { facts } from '../data/facts';
 import { questions, questionById } from '../data/questions';
 import type { Question } from '../data/types';
+import { multipleChoice } from './choices';
 export const SAVE_KEY = 'franklin-path-to-print-v1';
 export interface History {
   attempts: number;
@@ -17,6 +18,8 @@ export interface AnswerRecord {
   correct: boolean;
   confidence: number;
   selfAssessed?: boolean;
+  prompt?: string;
+  answer?: string;
 }
 export interface ExamRecord {
   id: string;
@@ -51,6 +54,8 @@ export interface Save {
   settings: {
     sound: boolean;
     music: boolean;
+    narration: boolean;
+    autoDialogue: boolean;
     reducedMotion: boolean;
     timed: boolean;
     largeText: boolean;
@@ -78,7 +83,15 @@ export const freshSave = (): Save => ({
     completed: [],
     bestTimes: {},
   },
-  settings: { sound: false, music: true, reducedMotion: false, timed: false, largeText: false },
+  settings: {
+    sound: false,
+    music: true,
+    narration: true,
+    autoDialogue: true,
+    reducedMotion: false,
+    timed: false,
+    largeText: false,
+  },
 });
 const unique = <T>(xs: T[]) => [...new Set(xs)];
 const numeric = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x >= 0;
@@ -347,7 +360,7 @@ export function priority(q: Question, save: Save, now = Date.now()) {
         (h.incorrect * 3) / (1 + h.streak) +
         (save.mistakes.includes(q.id) ? 5 : 0) +
         (h.dueAt <= now ? 4 : 0) +
-        (3 - h.confidence) -
+        1 -
         h.streak * 0.6,
     ) / (h.dueAt > now ? 2 : 1)
   );
@@ -409,19 +422,7 @@ export function selectQuestions(
   );
   return shuffle(selected.slice(0, count), rng);
 }
-export function recognition(q: Question): Question {
-  if (q.type === 'choice' || q.type === 'boolean') return q;
-  const candidates = questions.filter(
-    (x) =>
-      x.category === q.category &&
-      x.id !== q.id &&
-      x.answer !== q.answer &&
-      x.type !== 'order' &&
-      x.type !== 'match',
-  );
-  const options = unique([q.answer, ...shuffle(candidates).map((x) => x.answer)]).slice(0, 4);
-  return { ...q, type: 'choice', options };
-}
+export const recognition = multipleChoice;
 export function topicResults(answers: AnswerRecord[]) {
   return [...new Set(answers.map((a) => questionById[a.questionId]?.category).filter(Boolean))]
     .map((topic) => {

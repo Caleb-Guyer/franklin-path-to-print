@@ -19,8 +19,10 @@ import { chapters, events } from '../data/chapters';
 import { factById, facts } from '../data/facts';
 import { questions } from '../data/questions';
 import { useGame } from '../components/GameContext';
-import { Dialog, Source, roman } from '../components/Common';
+import { Dialog, roman } from '../components/Common';
 import QuestionCard from '../components/QuestionCard';
+import Conversation from '../components/Conversation';
+import SceneConversation from '../components/SceneConversation';
 import { award, selectQuestions, type AnswerRecord } from '../lib/game';
 import { PlatformGame, type GameStats } from '../game/platformer';
 import type { Controls } from '../game/world';
@@ -42,11 +44,9 @@ export default function Platformer() {
     seconds: 0,
     near: false,
   });
-  const [talk, setTalk] = useState<string | null>(null),
-    [talkStep, setTalkStep] = useState(0),
-    [reply, setReply] = useState<number | null>(null);
-  const [toast, setToast] = useState<string | null>(null),
-    [help, setHelp] = useState(false);
+  const [talk, setTalk] = useState<string | null>(null);
+  const [pageQueue, setPageQueue] = useState<string[]>([]);
+  const [help, setHelp] = useState(false);
   const [exam, setExam] = useState<Question[]>([]),
     [examIndex, setExamIndex] = useState(0),
     [answers, setAnswers] = useState<AnswerRecord[]>([]);
@@ -65,7 +65,7 @@ export default function Platformer() {
       saveRef.current.platformer.checkpoints[level] ?? 0,
       {
         page: (id) => {
-          setToast(id);
+          setPageQueue((queue) => [...queue, id]);
           setSave((s) => ({
             ...s,
             xp: s.xp + (s.platformer.collected.includes(id) ? 0 : 8),
@@ -87,8 +87,6 @@ export default function Platformer() {
           })),
         talk: (id) => {
           setTalk(id);
-          setTalkStep(0);
-          setReply(null);
           setPhase('talk');
         },
         finish: (result) => {
@@ -105,11 +103,7 @@ export default function Platformer() {
             found.length >= 2 ? found : chapterPool,
             2,
             saveRef.current,
-          ).map((q) => ({
-            ...q,
-            type: q.type === 'choice' ? 'recall' : q.type,
-            options: q.type === 'choice' ? undefined : q.options,
-          })) as Question[];
+          );
           setExam(picked);
           setPhase('quiz');
         },
@@ -131,11 +125,6 @@ export default function Platformer() {
       engine.current = null;
     };
   }, [level, attempt, setSave]);
-  useEffect(() => {
-    if (!toast) return;
-    const id = setTimeout(() => setToast(null), 2800);
-    return () => clearTimeout(id);
-  }, [toast]);
   useEffect(() => {
     if (!help) return;
     const id = setTimeout(() => setHelp(false), 6500);
@@ -164,12 +153,11 @@ export default function Platformer() {
   function pause() {
     engine.current?.pause();
     setPhase('paused');
-    setToast(null);
   }
   function playLevel(next: number, restart = false) {
     setExam([]);
     setAnswers([]);
-    setToast(null);
+    setPageQueue([]);
     setTalk(null);
     setCleared(null);
     setSave((s) => ({
@@ -225,7 +213,6 @@ export default function Platformer() {
     } else engine.current?.release(key);
   }
   const scene = events.find((e) => e.id === talk);
-  const sceneFact = scene ? factById[scene.factIds[talkStep % scene.factIds.length]] : null;
   const playing = phase === 'playing';
   return (
     <main className={'platform-shell ' + (playing ? 'is-playing' : '')}>
@@ -258,7 +245,7 @@ export default function Platformer() {
         )}
         <div className="platform-menu-buttons">
           <button
-            aria-label={save.settings.music ? 'Mute game audio' : 'Enable game audio'}
+            aria-label={save.settings.music ? 'Mute music and effects' : 'Enable music and effects'}
             onClick={toggleAudio}
           >
             {save.settings.music ? <Volume2 size={21} /> : <VolumeX size={21} />}
@@ -314,16 +301,21 @@ export default function Platformer() {
           </span>
         </div>
       )}
-      {playing && toast && (
-        <div className="page-discovery" key={toast} role="status">
-          <span className="page-discovery-icon">
-            <BookOpen size={23} />
-          </span>
-          <div>
-            <small>{factById[toast].prompt}</small>
-            <strong>{factById[toast].answer}</strong>
-          </div>
-          <span className="pickup-xp">+8</span>
+      {playing && pageQueue.length > 0 && (
+        <div className="pickup-companion">
+          <Conversation
+            key={pageQueue[0]}
+            compact
+            lines={[
+              {
+                speaker: "Franklin's journal",
+                text: factById[pageQueue[0]].details,
+                emphasis: factById[pageQueue[0]].answer,
+              },
+            ]}
+            onFinish={() => setPageQueue((queue) => queue.slice(1))}
+            finishLabel="Next memory"
+          />
         </div>
       )}
       {playing && (
@@ -435,63 +427,9 @@ export default function Platformer() {
           </div>
         </Dialog>
       )}
-      {phase === 'talk' && scene && sceneFact && (
+      {phase === 'talk' && scene && (
         <Dialog className="platform-dialogue" title={scene.title} onClose={resume}>
-          <span className="platform-overline">{scene.dialogue?.speaker ?? scene.title}</span>
-          {scene.dialogue ? (
-            <>
-              <p>{scene.dialogue.line}</p>
-              <small className="dialogue-paraphrase">
-                Paraphrase · PDF {scene.sourcePages.join(', ')}
-              </small>
-              {reply === null ? (
-                <>
-                  <h3>{scene.dialogue.reply}</h3>
-                  <div className="platform-replies">
-                    {scene.dialogue.options.map((option, i) => (
-                      <button key={option} onClick={() => setReply(i)}>
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="dialogue-response">
-                    <strong>{scene.dialogue.options[scene.dialogue.actual]}</strong>
-                    <br />
-                    {scene.dialogue.significance}
-                  </p>
-                  <button className="button primary" onClick={resume}>
-                    Continue
-                    <ArrowRight size={17} />
-                  </button>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <h2>{sceneFact.answer}</h2>
-              <p>{sceneFact.details}</p>
-              <div className="dialogue-bottom">
-                <Source pages={sceneFact.sourcePages} />
-                <span>
-                  {talkStep + 1}/{scene.factIds.length}
-                </span>
-                <button
-                  className="button"
-                  onClick={() => setTalkStep((n) => (n + 1) % scene.factIds.length)}
-                >
-                  Another detail
-                  <ArrowRight size={16} />
-                </button>
-                <button className="button primary" onClick={resume}>
-                  Continue
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            </>
-          )}
+          <SceneConversation key={scene.id} scene={scene} onClose={resume} />
         </Dialog>
       )}
       {phase === 'quiz' && exam[examIndex] && (

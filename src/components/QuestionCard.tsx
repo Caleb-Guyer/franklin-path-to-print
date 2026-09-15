@@ -1,33 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  ArrowDown,
-  ArrowUp,
-  Check,
-  Clock,
-  GripVertical,
-  Pause,
-  Play,
-  ArrowRight,
-  RotateCcw,
-  X,
-} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, Clock, Pause, Play, ArrowRight, X } from 'lucide-react';
 import type { Question } from '../data/types';
-import { grade, shuffle, recordAnswer, sound, type AnswerRecord } from '../lib/game';
+import { shuffle, recordAnswer, sound, type AnswerRecord } from '../lib/game';
+import { multipleChoice } from '../lib/choices';
 import { useGame } from './GameContext';
 import { Source } from './Common';
-const typeLabels = {
-  recall: 'Active recall',
-  blank: 'Fill the blank',
-  person: 'Identify the person',
-  place: 'Identify the place',
-  reason: 'Explain it from memory',
-  choice: 'Choose the accurate answer',
-  boolean: 'True or false / Yes or no',
-  order: 'Rebuild the chronology',
-  match: 'Connect the details',
-};
+import { VoiceButton } from './Voice';
+
 export default function QuestionCard({
-  question: q,
+  question,
   onResolved,
   onContinue,
   continueLabel = 'Next question',
@@ -41,85 +22,70 @@ export default function QuestionCard({
   timed?: boolean;
   initialAnswer?: AnswerRecord;
 }) {
+  const q = useMemo(() => multipleChoice(question), [question]);
   const { save, setSave } = useGame();
-  const [input, setInput] = useState(initialAnswer?.response ?? '');
-  const [confidence, setConfidence] = useState(initialAnswer?.confidence ?? 2);
   const [result, setResult] = useState<AnswerRecord | null>(initialAnswer ?? null);
-  const [compare, setCompare] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [seconds, setSeconds] = useState(
-    q.type === 'order' || q.type === 'match' || q.type === 'reason' ? 90 : 45,
-  );
-  const [sequence, setSequence] = useState(() => {
-    const a = shuffle(q.sequence ?? []);
-    return a.join() === q.sequence?.join() ? a.reverse() : a;
-  });
-  const [pairs, setPairs] = useState<Record<string, string>>({});
+  const [paused, setPaused] = useState(false),
+    [seconds, setSeconds] = useState(45);
   const [options] = useState(() => shuffle(q.options ?? []));
-  const [matchOptions] = useState(() => shuffle(q.pairs?.map((p) => p[1]) ?? []));
-  const dragging = useRef<number | null>(null);
   const resolved = useRef(!!initialAnswer);
-  const focusRef = useRef<HTMLInputElement>(null);
-  function commit(correct: boolean, selfAssessed = false, responseOverride?: string) {
-    if (resolved.current) return;
+  function commit(response: string) {
+    if (resolved.current || paused) return;
     resolved.current = true;
-    const response =
-      responseOverride ??
-      (q.type === 'order'
-        ? sequence.join('||')
-        : q.type === 'match'
-          ? JSON.stringify(pairs)
-          : input);
-    const a = { questionId: q.id, response, correct, confidence, selfAssessed };
+    const correct = response === q.answer;
+    const a: AnswerRecord = {
+      questionId: q.id,
+      response,
+      correct,
+      confidence: 2,
+      prompt: q.prompt,
+      answer: q.answer,
+    };
     setResult(a);
-    setCompare(false);
-    setSave((s) => recordAnswer(s, q, correct, confidence));
+    setSave((s) => recordAnswer(s, question, correct, 2));
     sound(save.settings.sound, correct);
     onResolved?.(a);
   }
   const commitRef = useRef(commit);
   commitRef.current = commit;
   useEffect(() => {
-    if (!timed || result || compare || paused) return;
-    const id = window.setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(id);
-  }, [timed, result, compare, paused]);
+    if (!timed || result || paused) return;
+    const timer = window.setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [timed, result, paused]);
   useEffect(() => {
-    if (timed && seconds === 0 && !resolved.current)
-      commitRef.current(false, false, '[Time expired]');
+    if (timed && seconds === 0) commitRef.current('[Time expired]');
   }, [seconds, timed]);
   useEffect(() => {
-    focusRef.current?.focus({ preventScroll: true });
-  }, []);
-  function submit() {
-    const response =
-      q.type === 'order' ? sequence.join('||') : q.type === 'match' ? JSON.stringify(pairs) : input;
-    const correct = grade(q, response);
-    if (!correct && ['recall', 'blank', 'person', 'place', 'reason'].includes(q.type)) {
-      setCompare(true);
-    } else commit(correct);
-  }
-  function move(from: number, to: number) {
-    if (to < 0 || to >= sequence.length || from === to) return;
-    setSequence((xs) => {
-      const a = [...xs];
-      const [item] = a.splice(from, 1);
-      a.splice(to, 0, item);
-      return a;
-    });
-  }
-  const ready =
-    q.type === 'order' || q.type === 'match'
-      ? q.type === 'order' || q.pairs?.every(([k]) => pairs[k])
-      : input.trim().length > 0;
+    if (result || paused) return;
+    const key = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.altKey ||
+        e.ctrlKey ||
+        e.metaKey ||
+        e.repeat
+      )
+        return;
+      const i = Number(e.key) - 1;
+      if (i >= 0 && i < options.length) {
+        e.preventDefault();
+        commitRef.current(options[i]);
+      }
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, [result, paused, options]);
+  const spokenQuestion = `${q.prompt} ${options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}.`).join(' ')}`;
   return (
     <article
       className={`question-card ${result ? (result.correct ? 'answered correct' : 'answered incorrect') : ''}`}
     >
       <div className="question-meta">
-        <span className="eyebrow">{typeLabels[q.type]}</span>
         <span className="tag">{q.category}</span>
-        {timed && !result && !compare && (
+        <VoiceButton text={spokenQuestion} auto={!result && !paused} />
+        {timed && !result && (
           <div className={'timer ' + (seconds < 11 ? 'urgent' : '')}>
             <Clock size={14} />
             {seconds}s
@@ -134,159 +100,25 @@ export default function QuestionCard({
         )}
       </div>
       <h2>{q.prompt}</h2>
-      {!result && !compare && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (ready && !paused) submit();
-          }}
-        >
-          {q.type === 'order' ? (
-            <div className="order-list">
-              <p className="small muted">Drag to reorder, or use the up and down buttons.</p>
-              {sequence.map((title, i) => (
-                <div
-                  key={title}
-                  className="order-item"
-                  draggable={!paused}
-                  onDragStart={() => (dragging.current = i)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (dragging.current !== null) move(dragging.current, i);
-                    dragging.current = null;
-                  }}
-                >
-                  <GripVertical size={17} />
-                  <span className="order-number">{i + 1}</span>
-                  <span>{title}</span>
-                  <div>
-                    <button
-                      type="button"
-                      aria-label={`Move ${title} up`}
-                      disabled={i === 0 || paused}
-                      onClick={() => move(i, i - 1)}
-                    >
-                      <ArrowUp size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Move ${title} down`}
-                      disabled={i === sequence.length - 1 || paused}
-                      onClick={() => move(i, i + 1)}
-                    >
-                      <ArrowDown size={15} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : q.type === 'match' ? (
-            <div className="matching-list">
-              {q.pairs?.map(([label]) => (
-                <label key={label}>
-                  <span>{label}</span>
-                  <select
-                    aria-label={'Match ' + label}
-                    disabled={paused}
-                    value={pairs[label] ?? ''}
-                    onChange={(e) => setPairs({ ...pairs, [label]: e.target.value })}
-                  >
-                    <option value="">Choose a connection</option>
-                    {matchOptions.map((x) => (
-                      <option key={x}>{x}</option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-            </div>
-          ) : q.type === 'choice' || q.type === 'boolean' ? (
-            <div className="answer-options" role="radiogroup" aria-label="Answer">
-              {options.map((option, i) => (
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={input === option}
-                  className={input === option ? 'selected' : ''}
-                  key={option}
-                  disabled={paused}
-                  onClick={() => setInput(option)}
-                >
-                  <span>{String.fromCharCode(65 + i)}</span>
-                  {option}
-                  {input === option && <Check size={17} />}
-                </button>
-              ))}
-            </div>
-          ) : q.type === 'reason' ? (
-            <label className="answer-label">
-              Your answer, in your own words
-              <textarea
+      {!result && (
+        <form onSubmit={(e) => e.preventDefault()}>
+          <div className="answer-options" role="radiogroup" aria-label="Answer">
+            {options.map((option, i) => (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={false}
+                key={option}
                 disabled={paused}
-                autoFocus
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                rows={3}
-                placeholder="Bring the detail back from memory…"
-              />
-            </label>
-          ) : (
-            <label className="answer-label">
-              {q.type === 'blank' ? 'Complete the missing detail' : 'Write what you remember'}
-              <input
-                ref={focusRef}
-                disabled={paused}
-                autoComplete="off"
-                spellCheck={false}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={q.type === 'blank' ? '________________' : 'Your answer…'}
-              />
-            </label>
-          )}
-          <div className="answer-footer">
-            <fieldset className="confidence">
-              <legend>How sure are you?</legend>
-              {['Guessing', 'Somewhat', 'Certain'].map((x, i) => (
-                <button
-                  key={x}
-                  type="button"
-                  className={confidence === i + 1 ? 'selected' : ''}
-                  onClick={() => setConfidence(i + 1)}
-                  aria-pressed={confidence === i + 1}
-                >
-                  {x}
-                </button>
-              ))}
-            </fieldset>
-            <button className="button primary" disabled={!ready || paused} type="submit">
-              Commit answer
-              <ArrowRight size={16} />
-            </button>
+                onClick={() => commit(option)}
+              >
+                <span>{String.fromCharCode(65 + i)}</span>
+                <span className="answer-option-text">{option}</span>
+              </button>
+            ))}
           </div>
-          {paused && <p className="small muted">Timer paused. Resume when you’re ready.</p>}
+          {paused && <p className="small muted">Timer paused.</p>}
         </form>
-      )}
-      {compare && (
-        <div className="compare-panel" aria-live="polite">
-          <div className="eyebrow">COMPARE YOUR RECALL</div>
-          <p className="your-response">You wrote: “{input}”</p>
-          <h3>{q.answer}</h3>
-          <p>{q.explanation}</p>
-          <Source pages={q.sourcePages} />
-          <p className="small muted">
-            Different wording? Compare with the answer and source, then assess your response.
-          </p>
-          <div className="button-row">
-            <button className="button" onClick={() => commit(false, true)}>
-              <RotateCcw size={16} />I missed this
-            </button>
-            <button className="button primary" onClick={() => commit(true, true)}>
-              <Check size={16} />
-              My answer means the same
-            </button>
-          </div>
-        </div>
       )}
       {result && (
         <div className="answer-reveal" aria-live="polite">
@@ -294,36 +126,15 @@ export default function QuestionCard({
             {result.correct ? <Check size={20} /> : <X size={20} />}
             <strong>{result.correct ? 'Correct' : 'Incorrect'}</strong>
             {!result.correct && <span>Added to the Trouble List</span>}
+            <VoiceButton
+              key="answer"
+              text={`${result.correct ? 'Correct.' : 'The answer is'} ${q.answer}. ${q.explanation}`}
+              auto
+            />
           </div>
-          <h3>
-            {q.type === 'order'
-              ? 'The correct sequence'
-              : q.type === 'match'
-                ? 'The correct connections'
-                : q.answer}
-          </h3>
-          {q.type === 'order' && (
-            <ol>
-              {q.sequence?.map((x) => (
-                <li key={x}>{x}</li>
-              ))}
-            </ol>
-          )}
-          {q.type === 'match' && (
-            <dl className="match-reveal">
-              {q.pairs?.map(([a, b]) => (
-                <div key={a}>
-                  <dt>{a}</dt>
-                  <dd>{b}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          <h3>{q.answer}</h3>
           <p>{q.explanation}</p>
           <Source pages={q.sourcePages} />
-          {result.selfAssessed && (
-            <span className="small muted"> · Self-assessed after comparison</span>
-          )}
           {onContinue && (
             <button autoFocus className="button primary next-answer" onClick={onContinue}>
               {continueLabel}

@@ -1,0 +1,335 @@
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.conversation {
+  display: flex;
+  gap: 24px;
+  padding: 22px 24px;
+  background: #101f2b;
+  border: 2px solid #c3d7c4;
+  box-shadow:
+    0 0 0 4px #101f2b,
+    0 0 0 5px #748e8966;
+  color: #f3efdb;
+}
+.conversation-main {
+  flex: 1;
+  min-width: 0;
+}
+.talk-portrait {
+  width: 74px;
+  height: 90px;
+  flex: 0 0 auto;
+  image-rendering: pixelated;
+  align-self: center;
+}
+.conversation-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+.conversation-heading strong {
+  color: #f4cf91;
+  font:
+    700 12px Arial,
+    sans-serif;
+  letter-spacing: 1px;
+}
+.conversation-heading > span {
+  font:
+    10px Arial,
+    sans-serif;
+  color: #90aba7;
+}
+.conversation .dialogue-text {
+  font:
+    18px/1.7 'Courier New',
+    monospace;
+  margin: 14px 0 17px;
+  min-height: 85px;
+  color: #f1f1df;
+}
+.talk-word {
+  white-space: nowrap;
+}
+.talk-letter {
+  display: inline-block;
+  opacity: 0;
+}
+.talk-letter.revealed {
+  opacity: 1;
+}
+.talk-word.emphasis {
+  color: #f2d493;
+  font-weight: 700;
+}
+.talk-word.emphasis .revealed {
+  animation: talk-wave 1.65s ease-in-out infinite;
+}
+.conversation-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  min-height: 32px;
+}
+.voice-button {
+  background: transparent;
+  border: 1px solid #b5c7bf40;
+  color: #c4d8cc;
+  min-width: 33px;
+  min-height: 33px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 5px;
+  padding: 6px;
+  vertical-align: middle;
+}
+.voice-button:hover {
+  background: #50756455;
+  color: #fff0c6;
+}
+.voice-control {
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+}
+.voice-control small,
+.voice-fallback {
+  color: #b8baaa;
+  font-size: 10px;
+}
+.dialogue-next {
+  margin-left: auto;
+  background: #e8ce98;
+  color: #1d3441;
+  border: 1px solid #fbe8b9;
+  border-radius: 4px;
+  padding: 9px 13px;
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dialogue-auto {
+  background: none;
+  border: 0;
+  color: #a7c4b3;
+  padding: 8px;
+  font-size: 10px;
+}
+.dialogue-auto[aria-pressed='false'] {
+  color: #a2aaa8;
+}
+.portrait-eyes {
+  transform-origin: 24px 19px;
+  animation: portrait-blink 5s infinite;
+}
+.portrait-mouth {
+  transform-origin: 24px 25px;
+}
+.talking .portrait-mouth {
+  animation: portrait-talk 0.19s steps(2) infinite;
+}
+.platform-shell .platform-dialogue {
+  background: #101f2bef;
+  max-width: 860px;
+  padding: 23px 26px;
+}
+.platform-dialogue .modal-head {
+  margin-bottom: 24px;
+}
+.platform-dialogue .conversation {
+  background: #101f2b;
+  box-shadow: none;
+}
+.scene-conversation > .dialogue-paraphrase {
+  display: block;
+  margin: -12px 0 18px;
+}
+.dialogue-reaction {
+  display: block;
+  margin-bottom: 15px;
+  color: #aac9b6;
+}
+.conversation-choice h3 {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+}
+.pickup-companion {
+  position: absolute;
+  top: 87px;
+  right: 26px;
+  width: min(490px, calc(100% - 40px));
+  z-index: 2;
+}
+.compact-conversation {
+  gap: 14px;
+  padding: 15px 17px;
+  background: #101f2bef;
+  border-width: 1px;
+  box-shadow: 0 12px 30px #07121b33;
+  border-radius: 8px;
+}
+.compact-conversation .talk-portrait {
+  width: 43px;
+  height: 54px;
+}
+.compact-conversation .conversation-heading strong {
+  font-size: 10px;
+}
+.compact-conversation .dialogue-text {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 9px 0;
+  min-height: 0;
+}
+.compact-conversation .dialogue-next {
+  padding: 5px 8px;
+  min-height: 28px;
+  font-size: 10px;
+}
+.compact-conversation .voice-button {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+}
+.compact-conversation .talk-word.emphasis .revealed {
+  animation: none;
+}
+.question-card .answer-options button > .answer-option-text {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  flex: 1;
+  display: block;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.question-card .answer-options {
+  margin-top: 25px;
+}
+.question-card .answer-options button {
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.question-card .answer-options button:hover {
+  background: #355346;
+  transform: translateX(3px);
+}
+.question-meta .voice-control {
+  margin-left: auto;
+}
+.feedback-title .voice-control {
+  margin-left: auto;
+}
+.narration .conversation {
+  margin: 6px 0 20px;
+}
+.source-audit .voice-note {
+  margin-top: 14px;
+}
+@keyframes talk-wave {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes portrait-talk {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(2.5);
+  }
+}
+@keyframes portrait-blink {
+  0%,
+  43%,
+  47%,
+  100% {
+    transform: scaleY(1);
+  }
+  45% {
+    transform: scaleY(0.1);
+  }
+}
+@media (max-width: 600px) {
+  .conversation {
+    gap: 13px;
+    padding: 16px 13px;
+  }
+  .talk-portrait {
+    width: 45px;
+    height: 60px;
+    align-self: flex-start;
+    margin-top: 25px;
+  }
+  .conversation .dialogue-text {
+    font-size: 15px;
+    min-height: 105px;
+    line-height: 1.65;
+  }
+  .conversation-heading strong {
+    font-size: 11px;
+  }
+  .conversation-controls .source-link {
+    font-size: 9px;
+  }
+  .platform-shell .platform-dialogue {
+    padding: 18px 14px;
+  }
+  .pickup-companion {
+    top: 74px;
+    right: 14px;
+    width: calc(100% - 28px);
+  }
+  .compact-conversation {
+    padding: 11px 13px;
+    gap: 10px;
+  }
+  .compact-conversation .talk-portrait {
+    width: 29px;
+    height: 40px;
+    margin-top: 17px;
+  }
+  .compact-conversation .dialogue-text {
+    font-size: 12px;
+    min-height: 0;
+  }
+  .voice-control small {
+    max-width: 135px;
+  }
+}
+.reduce-motion .talk-letter,
+.reduce-motion .portrait-mouth,
+.reduce-motion .portrait-eyes {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .talk-letter,
+  .portrait-mouth,
+  .portrait-eyes {
+    animation: none !important;
+  }
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { VoiceButton } from '../components/Voice';
 import {
   ArrowLeft,
   ArrowRight,
@@ -176,6 +177,7 @@ export function Collection() {
             <div className="eyebrow">TURN THE MEMORY OVER</div>
             <h3>{chosen.answer}</h3>
             <p>{chosen.details}</p>
+            <VoiceButton text={chosen.details} auto />
             <Source pages={chosen.sourcePages} />
             <h4>Related people</h4>
             <p>
@@ -316,6 +318,7 @@ export function Journal({ start }: { start: Start }) {
                 </summary>
                 <h3>{f.answer}</h3>
                 <p>{f.details}</p>
+                <VoiceButton text={f.details} />
                 <p className="recall-prompt">Close this entry and recall: {f.prompt}</p>
                 <Source pages={f.sourcePages} />
               </details>
@@ -442,6 +445,7 @@ export function Characters() {
                       CH. {roman(f.chapter)} · {f.label}
                     </span>
                     <p>{f.details}</p>
+                    <VoiceButton text={f.details} />
                     <Source pages={f.sourcePages} />
                   </article>
                 ))}
@@ -638,6 +642,7 @@ export function LocationMap({ start }: { start: Start }) {
                 <details key={id}>
                   <summary>{f.label}</summary>
                   <p>{f.details}</p>
+                  <VoiceButton text={f.details} />
                   <Source pages={f.sourcePages} />
                 </details>
               );
@@ -726,6 +731,7 @@ export function Study({ start }: { start: Start }) {
           {flipped && (
             <div className="flash-source">
               <Source pages={card.sourcePages} />
+              <VoiceButton text={card.details} auto />
             </div>
           )}
           <div className="flash-actions">

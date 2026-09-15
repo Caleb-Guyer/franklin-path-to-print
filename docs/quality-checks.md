@@ -14,7 +14,7 @@
 ## Automated checks
 
 - `npm install` completed with a committed lockfile.
-- `npm run check`: TypeScript, 25 unit/data/physics tests, production build.
+- `npm run check`: TypeScript, 30 unit/data/physics/speech-format tests, production build.
 - Data validation checks identifiers, page bounds, references, matching pairs, chronological order, scene coverage and question coverage per chapter.
 - Grading tests canonical answers, aliases, punctuation, number normalization, mistaken names, incomplete matching and incorrect chronology.
 - Memory tests cover wrong-answer priority, Trouble List removal, mastery, save serialization and corrupted-data recovery.
@@ -22,8 +22,17 @@
 - End-to-end tests actually answer all story recall prompts and all twelve 10-question trials, then verify all 60 scenes, 12 chapters and 252 cards are unlocked.
 - Exam test answers 18 of 20 correctly, checks 90%, saved mistakes and achievement, retries misses and reloads the save.
 - UI tests exercise every major screen and 390px phone layout, scan viewing, mobile navigation and confirmed/cancelled reset.
-- Additional browser flows verify all 272 questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Ten browser tests cover the learning tools and the platformer.
+- Additional browser flows verify all 272 questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Thirteen browser tests cover the learning tools and the platformer.
 - Production tests request the PDF and every scan and refresh hash routes under both `/franklin-path-to-print/` and `/franklin-part-one-game/`.
+
+## Dialogue and multiple-choice checks
+
+- All 272 questions convert deterministically to 2–4 distinct choices with exactly one accepted answer. All generated factual distractors come from the canonical bank.
+- Chronology questions test the next event; relationship questions test a source-backed connection. Their original IDs, source citations and review history are preserved.
+- Every fact and scene narration splits into short speech beats without dropping or rewriting words.
+- Browser checks verify progressive text reveal, reveal/skip, replay, Auto/Hold, voice cancellation, stale callback isolation, saved narration preference and music ducking.
+- Question tests verify spoken prompts/options, one-key scoring, immediate spoken feedback, no double scoring and no confidence step.
+- A phone test disables speech support and enables reduced motion, then verifies complete readable lines, working advancement and no horizontal overflow.
 
 ## Platformer checks
 
@@ -40,7 +49,8 @@ Desktop and phone screenshots inspected for typography, contrast, clipping, spac
 
 ## Practical limits
 
-- Free-form explanations can require honest self-assessment; the comparison and result screens identify it clearly.
+- Speech uses the installed browser/device voices; if speech is unavailable, text and gameplay continue. Speech engine behavior is tested with controlled callbacks, and native Windows Edge voices were separately verified to start playback.
+- Historical free-form scoring remains in the source-audit code and older saves; current questions use immediate multiple-choice scoring with no confidence prompt.
 - The location diagram is schematic, not a geographical survey.
 - Browser storage can be cleared by the browser or user. Export/import is provided.
 - Hosting has been tested locally with real production output at both supported subpaths. GitHub Actions checks and deploys `main`; the current remote result is recorded in the repository's workflow history.
