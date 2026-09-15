@@ -53,11 +53,13 @@ export function Dialog({
   title,
   onClose,
   wide = false,
+  className = '',
 }: {
   children: ReactNode;
   title: string;
   onClose: () => void;
   wide?: boolean;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -67,10 +69,13 @@ export function Dialog({
   }, []);
   return (
     <dialog
-      className={'modal ' + (wide ? 'wide' : '')}
+      className={'modal ' + (wide ? 'wide ' : '') + className}
       aria-label={title}
       ref={ref}
-      onCancel={onClose}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

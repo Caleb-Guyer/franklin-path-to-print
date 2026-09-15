@@ -2,12 +2,15 @@
 
 ### Part One — The Apprentice
 
-A complete, local-first narrative learning game built for a detailed quiz on **the supplied 27-page scan of Part One** of Benjamin Franklin’s _Autobiography_. Play through the story, reconstruct conversations, type what you remember, and turn missed details into targeted rematches.
+Play as Franklin in a **2D platform adventure**: leap across rooftops, dash through ink creatures, follow page trails and reach the printing press. Twelve chapter worlds turn the supplied Part One excerpt into a playable journey, with original music and study tools available from the menu.
 
-![The lamplit print room](docs/screenshots/home.png)
+![Franklin platform adventure](docs/screenshots/home.png)
 
 ## What is inside
 
+- **12 platforming levels** with double jumps, air dash, bounce pads, moving platforms, ink creatures, safe checkpoints and optional upper routes. All 252 facts appear as collectible pages; all 60 scenes appear as conversation stops.
+- Original procedural music with chapter variations, movement and pickup sounds, rising page-streak tones and a saved mute switch. Audio starts after Play and uses no external files or services.
+- A compact hearts/pages HUD, keyboard and touch controls, saved chapter progress, replay, collectible completion and personal best times for runs started from the beginning. Study tools stay in the menu.
 - **272 questions**: 252 distinct factual prompts, 12 chronology challenges, and 8 matching challenges. Most questions require typed recall; Easy mode adds recognition practice.
 - **12 chronological story chapters, 60 playable scenes**, and a recall boss trial at each chapter’s end.
 - **252 source-linked memory cards**, 66 character profiles and an interactive relationship web, a 60-item timeline, and a schematic location map.
@@ -17,6 +20,18 @@ A complete, local-first narrative learning game built for a detailed quiz on **t
 - Flashcards and character, chronology, people, place, publication/book, virtue/idea and obscure-detail drills.
 - Browser saves, save export/import, confirmed reset, optional synthesized sound, reduced motion, large text, keyboard ordering controls and mobile navigation.
 - Full source PDF and all 27 readable scan images available inside the game. No external fonts, images, audio, accounts or runtime APIs.
+
+## Controls
+
+| Action                  | Keyboard              |
+| ----------------------- | --------------------- |
+| Move                    | A / D or Left / Right |
+| Jump / double jump      | Space, W or Up        |
+| Dash                    | Shift or X            |
+| Talk / enter print shop | E or Enter            |
+| Pause                   | Escape                |
+
+Phones and tablets show touch controls. Collect pages along the route, talk to characters when you choose, and answer two short recall prompts at the chapter’s printing press. Missed answers feed the same adaptive review system as Quiz mode. Falls return you to your latest checkpoint. The Chapters menu shows remaining pages and personal bests.
 
 ## Play locally
 
@@ -51,7 +66,7 @@ The only historical source is the user-provided **`Franklin Part 1.pdf`**, suppl
 
 [The complete page-by-page source outline](docs/source-outline.md) records the extraction before conversion to scenes and questions. Every fact, question, scene, character and location has `sourcePages`. These are **PDF spread numbers 1–27**, not printed book page numbers. Source buttons open the actual scans so the reader can verify details.
 
-No external summaries or biographical sources were used for game facts. Uncertainty and retrospective chronology are preserved. Anonymous names are not supplied from outside knowledge. The later thirteen-virtue program is not inserted into this excerpt. Virtue/idea drills use the reflections actually present in Part One. Editorial material is distinguished from Franklin’s narrative. Scene atmosphere and the original SVG artwork are illustrative; dialogue is paraphrased, not invented verbatim quotation.
+No external summaries or biographical sources were used for game facts. Uncertainty and retrospective chronology are preserved. Anonymous names are not supplied from outside knowledge. The later thirteen-virtue program is not inserted into this excerpt. Virtue/idea drills use the reflections actually present in Part One. Editorial material is distinguished from Franklin’s narrative. Platform routes, ink creatures, jumping abilities, scenery and the original canvas/SVG artwork are playful illustrations, not biographical claims; dialogue is paraphrased, not invented verbatim quotation.
 
 ## Publish to GitHub Pages
 
@@ -106,9 +121,9 @@ npm run check
 npm run test:e2e
 ```
 
-`check` runs formatting, TypeScript, 16 unit/data integrity tests and the production build. Seven browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
+`check` runs formatting, TypeScript, 25 unit/data/physics tests and the production build. Ten browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
 
-Browser tests cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
+Browser tests play a full platformer level through the actual movement inputs, test music synthesis, keyboard and touch movement, pause, NPC conversations, saved pickups and chapter advancement. They also cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
 
 ## Project structure
 
@@ -116,11 +131,13 @@ Browser tests cover every screen, 390px mobile overflow, source image viewing, s
 src/
   data/           Facts, questions, chapters, events, people, places, cards
   components/     Save provider, accessible dialogs, source viewer, recall forms
-  pages/          Story, quiz/bosses, journal, timeline, map, study, settings
+  game/           Canvas renderer, movement physics, worlds and original Web Audio music
+  pages/          Platformer, story journal, quiz/bosses, library tools and settings
   lib/            Grading, adaptive review, saves, achievements and tests
-  App.tsx         Hash navigation, home and optional WebMCP integration
+  App.tsx         Hash navigation and optional WebMCP integration
   styles.css      Main visual design
-  game.css        Game screens and responsive layouts
+  game.css        Study screens and responsive layouts
+  platformer.css  Minimal game HUD, title screen, overlays and touch controls
 public/
   source/         Canonical PDF and all 27 scan images
   press-room.svg  Original decorative artwork
@@ -130,8 +147,8 @@ tests/            Browser journeys and production subpath server
 .github/workflows/deploy.yml
 ```
 
-Built with React, Vite, TypeScript and CSS. The small runtime icon dependency is Lucide. Progress uses the `franklin-path-to-print-v1` localStorage key; it is tied to this browser and origin. Completed answers save immediately. Leaving or refreshing an unfinished quiz starts a new round while retaining those answer records. Export from Settings to move a save between browsers or from the local preview to Pages.
+Built with React, Vite, TypeScript, Canvas 2D, Web Audio and CSS. The small runtime icon dependency is Lucide. Progress uses the `franklin-path-to-print-v1` localStorage key; it is tied to this browser and origin. Completed answers save immediately. Leaving or refreshing an unfinished quiz starts a new round while retaining those answer records. Export from Settings to move a save between browsers or from the local preview to Pages.
 
 ## Content and asset ownership
 
-The interface, code, derived study material and original SVG artwork were created for this project. The supplied PDF and rendered scans retain their original attribution; this project does not grant a new license over them. Third-party packages retain their respective licenses.
+The interface, code, derived study material and original canvas/SVG artwork and synthesized soundtrack were created for this project. The supplied PDF and rendered scans retain their original attribution; this project does not grant a new license over them. Third-party packages retain their respective licenses.

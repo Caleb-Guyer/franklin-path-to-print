@@ -1,0 +1,201 @@
+import { test, expect, type Page } from '@playwright/test';
+import { questions } from '../../src/data/questions';
+import type { PlatformGame } from '../../src/game/platformer';
+
+declare global {
+  interface Window {
+    platformTestGame: PlatformGame;
+    oscillatorCount: number;
+  }
+}
+const saveKey = 'franklin-path-to-print-v1';
+async function observeGame(page: Page) {
+  // Attach read access in the test browser only; the shipped game has no test shortcuts.
+  await page.evaluate(async () => {
+    const path = performance
+      .getEntriesByType('resource')
+      .find((e) => e.name.includes('/src/game/platformer.ts'))!.name;
+    const { PlatformGame } = await import(path);
+    const stats = PlatformGame.prototype.stats;
+    PlatformGame.prototype.stats = function () {
+      window.platformTestGame = this;
+      return stats.call(this);
+    };
+  });
+}
+async function play(page: Page) {
+  await page.goto('/');
+  await observeGame(page);
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(page.locator('.platform-shell')).toHaveClass(/is-playing/);
+  await expect.poll(() => page.evaluate(() => !!window.platformTestGame)).toBe(true);
+}
+async function answerPress(page: Page) {
+  const prompt = await page.locator('.question-card > h2').innerText();
+  const q = questions.find((q) => q.prompt === prompt)!;
+  const form = page.locator('.question-card form');
+  if (await form.getByRole('radio').count()) {
+    const options = await form.getByRole('radio').allTextContents();
+    await form
+      .getByRole('radio')
+      .nth(options.map((s) => s.slice(1).trim()).indexOf(q.answer))
+      .click();
+  } else await form.getByRole('textbox').fill(q.answer);
+  await page.getByRole('button', { name: 'Commit answer', exact: true }).click();
+  if (await page.getByRole('button', { name: 'My answer means the same', exact: true }).count())
+    await page.getByRole('button', { name: 'My answer means the same', exact: true }).click();
+  await page.locator('.next-answer').click();
+}
+
+test('keyboard movement, source conversations, audio, pause, and saved pickups work', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => {
+    window.oscillatorCount = 0;
+    const create = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function () {
+      window.oscillatorCount++;
+      return create.call(this);
+    };
+  });
+  await page.goto('/');
+  expect(await page.evaluate(() => window.oscillatorCount)).toBe(0);
+  await observeGame(page);
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.oscillatorCount)).toBeGreaterThan(8);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        (k) => JSON.parse(localStorage.getItem(k)!).platformer.collected.length,
+        saveKey,
+      ),
+    )
+    .toBeGreaterThan(0);
+  await page.keyboard.press('e');
+  await expect(page.locator('.platform-dialogue')).toBeVisible();
+  await expect(page.locator('.platform-dialogue .source-link')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.platform-dialogue')).toHaveCount(0);
+  const initial = await page.evaluate(() => ({
+    x: window.platformTestGame.player.x,
+    y: window.platformTestGame.player.y,
+  }));
+  await page.keyboard.down('Space');
+  await page.waitForTimeout(180);
+  expect(await page.evaluate(() => window.platformTestGame.player.y)).toBeLessThan(initial.y - 40);
+  await page.keyboard.up('Space');
+  await page.keyboard.down('d');
+  await page.keyboard.press('Shift');
+  await page.waitForTimeout(450);
+  await page.keyboard.up('d');
+  expect(await page.evaluate(() => window.platformTestGame.player.x)).toBeGreaterThan(
+    initial.x + 100,
+  );
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Paused', exact: true })).toBeVisible();
+  const pausedAt = await page.evaluate(() => window.platformTestGame.elapsed);
+  await page.waitForTimeout(250);
+  expect(await page.evaluate(() => window.platformTestGame.elapsed)).toBe(pausedAt);
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.getByRole('button', { name: 'Mute game audio', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Enable game audio', exact: true })).toBeVisible();
+  await page.screenshot({ path: 'test-results/platformer-desktop.png' });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Enable game audio', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('a full level can be played through, printed, saved, and followed by the next chapter', async ({
+  page,
+}) => {
+  await play(page);
+  // A controller uses only the public button inputs and observes geometry. It does not
+  // teleport the player, remove hazards, collect pages directly, or change scores.
+  const result = await page.evaluate(
+    () =>
+      new Promise<{ finished: boolean; x: number; deaths: number }>((resolve) => {
+        const game = window.platformTestGame,
+          start = performance.now();
+        function frame() {
+          if (game.finished || performance.now() - start > 55000) {
+            game.release('right');
+            game.release('jump');
+            resolve({ finished: game.finished, x: game.player.x, deaths: game.deaths });
+            return;
+          }
+          const p = game.player;
+          game.press('right');
+          const standing = game.world.platforms.find(
+            (s) => Math.abs(s.y - p.y - p.h) < 3 && p.x + p.w > s.x && p.x < s.x + s.w,
+          );
+          game.release('jump');
+          if (
+            (p.grounded && standing && standing.x + standing.w - p.x < 100) ||
+            (!p.grounded && p.vy > 100 && p.y > 400 && p.jumps < 2)
+          )
+            game.press('jump');
+          else if (p.vy < 0) game.controls.jump = true;
+          game.release('dash');
+          if (
+            game.world.enemies.some(
+              (e) => e.alive && e.x > p.x && e.x - p.x < 90 && Math.abs(p.y - e.y) < 70,
+            )
+          )
+            game.press('dash');
+          if (p.x > game.world.exit.x - 50) {
+            game.release('right');
+            game.press('interact');
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }),
+  );
+  expect(result.finished, JSON.stringify(result)).toBe(true);
+  await expect(page.getByRole('dialog', { name: 'At the press · 1 / 2' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'At the press · 1 / 2' })).toBeVisible();
+  await answerPress(page);
+  await answerPress(page);
+  await expect(page.locator('.platform-complete')).toBeVisible();
+  await expect(page.locator('.level-results')).toContainText('2/2');
+  const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), saveKey);
+  expect(saved.platformer.completed).toContain(0);
+  expect(saved.platformer.unlocked).toBe(1);
+  expect(saved.platformer.collected.length).toBeGreaterThan(3);
+  expect(saved.platformer.bestTimes[0]).toBeGreaterThan(5);
+  expect(saved.history).not.toEqual({});
+  await page.getByRole('button', { name: 'Next chapter', exact: true }).click();
+  await expect(page.locator('.hud-chapter')).toHaveText('II');
+  await expect(page.locator('.platform-shell')).toHaveClass(/is-playing/);
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.locator('.hud-chapter')).toHaveText('II');
+});
+
+test('mobile touch controls move Franklin without overflowing or leaving a stuck input', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await play(page);
+  const right = await page.getByRole('button', { name: 'Move right', exact: true }).boundingBox();
+  const initial = await page.evaluate(() => window.platformTestGame.player.x);
+  await page.mouse.move(right!.x + 20, right!.y + 20);
+  await page.mouse.down();
+  await page.waitForTimeout(600);
+  await page.mouse.up();
+  expect(await page.evaluate(() => window.platformTestGame.player.x)).toBeGreaterThan(initial + 80);
+  expect(await page.evaluate(() => window.platformTestGame.controls.right)).toBe(false);
+  await page.getByRole('button', { name: 'Jump', exact: true }).click();
+  await page.screenshot({ path: 'test-results/platformer-mobile.png' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(844);
+  await page.getByRole('button', { name: 'Pause game', exact: true }).click();
+  await page.getByRole('button', { name: 'Chapters', exact: true }).click();
+  await expect(page.locator('.platform-levels button')).toHaveCount(12);
+  await expect(page.locator('.platform-levels button').nth(1)).toBeDisabled();
+});

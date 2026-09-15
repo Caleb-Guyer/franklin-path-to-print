@@ -40,7 +40,21 @@ export interface Save {
   bestStreak: number;
   decisions: Record<string, number>;
   exams: ExamRecord[];
-  settings: { sound: boolean; reducedMotion: boolean; timed: boolean; largeText: boolean };
+  platformer: {
+    level: number;
+    unlocked: number;
+    collected: string[];
+    checkpoints: Record<string, number>;
+    completed: number[];
+    bestTimes: Record<string, number>;
+  };
+  settings: {
+    sound: boolean;
+    music: boolean;
+    reducedMotion: boolean;
+    timed: boolean;
+    largeText: boolean;
+  };
 }
 export const freshSave = (): Save => ({
   version: 1,
@@ -56,7 +70,15 @@ export const freshSave = (): Save => ({
   bestStreak: 0,
   decisions: {},
   exams: [],
-  settings: { sound: false, reducedMotion: false, timed: false, largeText: false },
+  platformer: {
+    level: 0,
+    unlocked: 0,
+    collected: [],
+    checkpoints: {},
+    completed: [],
+    bestTimes: {},
+  },
+  settings: { sound: false, music: true, reducedMotion: false, timed: false, largeText: false },
 });
 const unique = <T>(xs: T[]) => [...new Set(xs)];
 const numeric = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x >= 0;
@@ -94,6 +116,32 @@ export function parseSave(raw: string | null): Save {
       streak: numeric(parsed.streak) ? parsed.streak : 0,
       bestStreak: numeric(parsed.bestStreak) ? parsed.bestStreak : 0,
       decisions: typeof parsed.decisions === 'object' && parsed.decisions ? parsed.decisions : {},
+      platformer: {
+        level: numeric(parsed.platformer?.level)
+          ? Math.min(11, Math.floor(parsed.platformer.level))
+          : 0,
+        unlocked: numeric(parsed.platformer?.unlocked)
+          ? Math.min(11, Math.floor(parsed.platformer.unlocked))
+          : 0,
+        collected: strings(parsed.platformer?.collected).filter((id) =>
+          facts.some((f) => f.id === id),
+        ),
+        checkpoints: Object.fromEntries(
+          Object.entries(parsed.platformer?.checkpoints ?? {})
+            .filter(
+              ([k, v]) => /^([0-9]|1[01])$/.test(k) && numeric(v) && Number.isInteger(v) && v <= 5,
+            )
+            .map(([k, v]) => [k, Number(v)]),
+        ),
+        completed: Array.isArray(parsed.platformer?.completed)
+          ? unique(parsed.platformer.completed.filter((n: unknown) => numeric(n) && n <= 11))
+          : [],
+        bestTimes: Object.fromEntries(
+          Object.entries(parsed.platformer?.bestTimes ?? {})
+            .filter(([k, v]) => /^([0-9]|1[01])$/.test(k) && numeric(v))
+            .map(([k, v]) => [k, Number(v)]),
+        ),
+      },
       exams: Array.isArray(parsed.exams)
         ? parsed.exams
             .filter(

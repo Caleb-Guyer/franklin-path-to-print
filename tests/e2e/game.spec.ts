@@ -127,6 +127,7 @@ test('all sections render, source scans open, mobile layout stays within the vie
     fullPage: true,
     animations: 'disabled',
   });
+  await page.goto('/#journal');
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await expect(page.locator('.sidebar')).toHaveClass(/open/);
   await page.getByRole('link', { name: 'Quiz', exact: true }).first().click();
@@ -196,8 +197,7 @@ test('all twelve chapters and every scene are reachable through actual recall an
   expect(saved.unlockedCards).toHaveLength(252);
   expect(saved.achievements).toContain('survivor');
   expect(saved.currentChapter).toBe(12);
-  await page.goto('/#home');
-  await page.getByRole('link', { name: 'Chapter 1: ' + chapters[0].title, exact: true }).click();
+  await page.goto('/#story/1');
   await expect(page.locator('.page-title h1')).toHaveText(chapters[0].title);
   await page.goto('/#story/2');
   await expect(page.locator('.page-title h1')).toHaveText(chapters[1].title);
@@ -218,7 +218,7 @@ test('settings reset requires confirmation and cancel preserves the save', async
   const after = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), saveKey);
   expect(after.xp).toBe(0);
   expect(after.unlockedCards).toHaveLength(0);
-  await expect(page.locator('.home-hero')).toBeVisible();
+  await expect(page.locator('.platform-title')).toBeVisible();
 });
 
 test('production assets and hash refresh work under either GitHub Pages repository subpath', async ({
@@ -236,7 +236,8 @@ test('production assets and hash refresh work under either GitHub Pages reposito
     await page.reload();
     await expect(page.locator('.page-title h1')).toHaveText('Characters');
     await page.goto(base + '#home');
-    await expect(page.locator('.hero-art')).toHaveJSProperty('complete', true);
+    await expect(page.locator('.platform-title')).toBeVisible();
+    await expect(page.locator('.platform-canvas')).toHaveJSProperty('width', 1440);
     expect((await request.get(base + 'source/Franklin-Part-One.pdf')).status()).toBe(200);
     for (let n = 1; n <= 27; n++)
       expect(

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ArrowRight,
   BookOpen,
   Compass,
   Feather,
@@ -16,17 +15,17 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { chapters } from './data/chapters';
+import Platformer from './pages/Platformer';
 import { questions } from './data/questions';
 import { freshSave, level, levelProgress, rank } from './lib/game';
 import { GameProvider, useGame } from './components/GameContext';
-import { Dialog, Progress, SourceViewer, roman } from './components/Common';
+import { Dialog, Progress, SourceViewer } from './components/Common';
 import Story from './pages/Story';
 import Quiz, { bossConfig, type SessionConfig } from './pages/Quiz';
 import { Characters, Collection, Journal, LocationMap, Study, Timeline } from './pages/Library';
 import SettingsPage from './pages/Settings';
 const nav = [
-  ['home', 'Home', Feather],
+  ['home', 'Play', Feather],
   ['story', 'Story', Compass],
   ['quiz', 'Quiz', Swords],
   ['journal', 'Memory journal', BookOpen],
@@ -157,6 +156,7 @@ function AppShell() {
     setPath('arena');
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
+  if (route === 'home') return <Platformer />;
   return (
     <div className="app-shell">
       <a
@@ -230,9 +230,7 @@ function AppShell() {
           </div>
         )}
         <div key={path} className="route-enter">
-          {route === 'home' ? (
-            <Home />
-          ) : route === 'story' ? (
+          {route === 'story' ? (
             <Story
               initialChapter={Math.min(
                 save.currentChapter,
@@ -276,80 +274,6 @@ function AppShell() {
         </div>
       </main>
     </div>
-  );
-}
-function Home() {
-  const { save, reset } = useGame();
-  const chapter = chapters[save.currentChapter - 1];
-  return (
-    <>
-      <section className="home-hero">
-        <img
-          className="hero-art"
-          src={import.meta.env.BASE_URL + 'press-room.svg'}
-          alt="An imagined lamplit printing room overlooking a harbor"
-        />
-        <div className="hero-shade" />
-        <div className="hero-copy">
-          <h1>
-            FRANKLIN<span>THE PATH TO PRINT</span>
-          </h1>
-          <p className="subtitle">Part One — The Apprentice</p>
-          <div className="home-actions">
-            <a className="button primary journey-button" href="#story">
-              <Compass size={19} />
-              {save.completedEvents.length ? 'Continue story' : 'Begin story'}
-              <ArrowRight size={18} />
-            </a>
-            <a className="button" href="#quiz">
-              Quiz
-              <ArrowRight size={17} />
-            </a>
-          </div>
-          {save.completedEvents.length > 0 && (
-            <button className="new-journey" onClick={reset}>
-              New journey
-            </button>
-          )}
-        </div>
-      </section>
-      <section className="home-chapters">
-        <div className="chapters-heading">
-          <div>
-            <h2>Chapters</h2>
-            <p>{chapter.title}</p>
-          </div>
-          <span>
-            {save.completedChapters.length} / {chapters.length} complete
-          </span>
-        </div>
-        <div className="journey-track">
-          {chapters.map((c) => (
-            <a
-              href={c.id <= save.currentChapter ? '#story/' + c.id : undefined}
-              aria-disabled={c.id > save.currentChapter}
-              title={
-                c.id > save.currentChapter
-                  ? 'Complete earlier chapter trials to unlock'
-                  : 'Open this chapter'
-              }
-              key={c.id}
-              aria-label={'Chapter ' + c.id + ': ' + c.title}
-              className={
-                save.completedChapters.includes(c.id)
-                  ? 'complete'
-                  : c.id === save.currentChapter
-                    ? 'current'
-                    : ''
-              }
-            >
-              <span>{roman(c.id)}</span>
-              <small>{c.title}</small>
-            </a>
-          ))}
-        </div>
-      </section>
-    </>
   );
 }
 function ResetDialog({ onClose }: { onClose: () => void }) {

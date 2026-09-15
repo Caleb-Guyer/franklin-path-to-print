@@ -39,6 +39,12 @@ export default function Settings() {
           <div className="eyebrow">YOUR EXPERIENCE</div>
           {(
             [
+              [
+                'music',
+                'Game audio',
+                'Original music and movement effects while you play.',
+                Volume2,
+              ],
               ['sound', 'Subtle sound effects', 'Play a tone after each answer.', Volume2],
               [
                 'reducedMotion',
@@ -154,8 +160,10 @@ export default function Settings() {
           </p>
           <p>
             References use PDF spread numbers. Dialogue is labeled paraphrase; atmosphere and
-            artwork are imaginative. Uncertain dates and reports remain qualified. The
-            thirteen-virtue program from outside this excerpt is not included.
+            artwork are imaginative. Platforming routes, ink creatures and movement abilities are
+            playful inventions; collected pages and conversations use the source. Uncertain dates
+            and reports remain qualified. The thirteen-virtue program from outside this excerpt is
+            not included.
           </p>
           <div className="source-stat-line">
             <span>{questions.length} questions</span>

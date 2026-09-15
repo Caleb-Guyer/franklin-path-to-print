@@ -32,17 +32,19 @@ export default function QuestionCard({
   onContinue,
   continueLabel = 'Next question',
   timed = false,
+  initialAnswer,
 }: {
   question: Question;
   onResolved?: (a: AnswerRecord) => void;
   onContinue?: () => void;
   continueLabel?: string;
   timed?: boolean;
+  initialAnswer?: AnswerRecord;
 }) {
   const { save, setSave } = useGame();
-  const [input, setInput] = useState('');
-  const [confidence, setConfidence] = useState(2);
-  const [result, setResult] = useState<AnswerRecord | null>(null);
+  const [input, setInput] = useState(initialAnswer?.response ?? '');
+  const [confidence, setConfidence] = useState(initialAnswer?.confidence ?? 2);
+  const [result, setResult] = useState<AnswerRecord | null>(initialAnswer ?? null);
   const [compare, setCompare] = useState(false);
   const [paused, setPaused] = useState(false);
   const [seconds, setSeconds] = useState(
@@ -56,7 +58,7 @@ export default function QuestionCard({
   const [options] = useState(() => shuffle(q.options ?? []));
   const [matchOptions] = useState(() => shuffle(q.pairs?.map((p) => p[1]) ?? []));
   const dragging = useRef<number | null>(null);
-  const resolved = useRef(false);
+  const resolved = useRef(!!initialAnswer);
   const focusRef = useRef<HTMLInputElement>(null);
   function commit(correct: boolean, selfAssessed = false, responseOverride?: string) {
     if (resolved.current) return;
