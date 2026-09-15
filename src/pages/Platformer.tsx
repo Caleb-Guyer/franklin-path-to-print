@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
-  BookOpen,
   Check,
   ChevronRight,
   Heart,
@@ -14,68 +13,56 @@ import {
   Volume2,
   VolumeX,
   Zap,
+  Swords,
 } from 'lucide-react';
-import { chapters, events } from '../data/chapters';
-import { factById, facts } from '../data/facts';
-import { questions } from '../data/questions';
+import { chapters } from '../data/chapters';
+import { facts } from '../data/facts';
 import { useGame } from '../components/GameContext';
 import { Dialog, roman } from '../components/Common';
-import QuestionCard from '../components/QuestionCard';
 import Conversation from '../components/Conversation';
-import SceneConversation from '../components/SceneConversation';
-import { award, selectQuestions, type AnswerRecord } from '../lib/game';
+import { award } from '../lib/game';
 import { PlatformGame, type GameStats } from '../game/platformer';
+import { weapons, levelLessons } from '../game/loadouts';
+import { WeaponIcon } from '../components/WeaponIcon';
 import type { Controls } from '../game/world';
-import type { Question } from '../data/types';
 
-type Phase = 'title' | 'playing' | 'paused' | 'levels' | 'talk' | 'quiz' | 'complete';
-const formatTime = (seconds: number) =>
-  `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+type Phase = 'title' | 'playing' | 'paused' | 'levels' | 'talk' | 'complete';
+const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 export default function Platformer() {
   const { save, setSave, storageError } = useGame();
-  const [level, setLevel] = useState(save.platformer.level);
-  const [attempt, setAttempt] = useState(0);
-  const [phase, setPhase] = useState<Phase>('title');
+  const [level, setLevel] = useState(save.platformer.level),
+    [attempt, setAttempt] = useState(0);
+  const [phase, setPhase] = useState<Phase>('title'),
+    [help, setHelp] = useState(false);
+  const [cleared, setCleared] = useState<GameStats | null>(null);
   const [stats, setStats] = useState<GameStats>({
-    pages: 0,
-    total: 0,
-    hearts: 3,
+    kills: 0,
+    score: 0,
+    combo: 0,
+    bestCombo: 0,
+    hearts: 5,
     deaths: 0,
     seconds: 0,
     near: false,
+    weaponReady: 1,
+    fury: false,
+    guardianHp: 0,
+    guardianMax: 12,
   });
-  const [talk, setTalk] = useState<string | null>(null);
-  const [pageQueue, setPageQueue] = useState<string[]>([]);
-  const [help, setHelp] = useState(false);
-  const [exam, setExam] = useState<Question[]>([]),
-    [examIndex, setExamIndex] = useState(0),
-    [answers, setAnswers] = useState<AnswerRecord[]>([]);
-  const [cleared, setCleared] = useState<GameStats | null>(null);
   const canvas = useRef<HTMLCanvasElement>(null),
     engine = useRef<PlatformGame | null>(null),
     saveRef = useRef(save),
     autoStart = useRef(false);
   saveRef.current = save;
+  const weapon = weapons[level],
+    lesson = levelLessons[level];
   useEffect(() => {
     if (!canvas.current) return;
     const game = new PlatformGame(
       canvas.current,
       level,
-      saveRef.current.platformer.collected,
       saveRef.current.platformer.checkpoints[level] ?? 0,
       {
-        page: (id) => {
-          setPageQueue((queue) => [...queue, id]);
-          setSave((s) => ({
-            ...s,
-            xp: s.xp + (s.platformer.collected.includes(id) ? 0 : 8),
-            unlockedCards: [...new Set([...s.unlockedCards, id])],
-            platformer: {
-              ...s.platformer,
-              collected: [...new Set([...s.platformer.collected, id])],
-            },
-          }));
-        },
         checkpoint: (zone) =>
           setSave((s) => ({
             ...s,
@@ -85,27 +72,40 @@ export default function Platformer() {
               checkpoints: { ...s.platformer.checkpoints, [level]: zone },
             },
           })),
-        talk: (id) => {
-          setTalk(id);
-          setPhase('talk');
-        },
+        talk: () => setPhase('talk'),
         finish: (result) => {
           setCleared(result);
-          setAnswers([]);
-          setExamIndex(0);
-          const chapterPool = questions.filter(
-            (q) => q.chapter === level + 1 && !['order', 'match'].includes(q.type),
+          setSave((s) =>
+            award({
+              ...s,
+              xp:
+                s.xp +
+                (!s.platformer.completed.includes(level) ? 150 : 0) +
+                Math.min(100, Math.floor(result.score / 50)),
+              completedChapters: [...new Set([...s.completedChapters, level + 1])],
+              currentChapter: Math.max(s.currentChapter, Math.min(12, level + 2)),
+              unlockedCards: [
+                ...new Set([
+                  ...s.unlockedCards,
+                  ...facts.filter((f) => f.chapter === level + 1).map((f) => f.id),
+                ]),
+              ],
+              platformer: {
+                ...s.platformer,
+                level: Math.min(11, level + 1),
+                unlocked: Math.max(s.platformer.unlocked, Math.min(11, level + 1)),
+                completed: [...new Set([...s.platformer.completed, level])],
+                checkpoints: { ...s.platformer.checkpoints, [level]: 0 },
+                bestTimes: game.startedFromBeginning
+                  ? {
+                      ...s.platformer.bestTimes,
+                      [level]: Math.min(s.platformer.bestTimes[level] ?? Infinity, result.seconds),
+                    }
+                  : s.platformer.bestTimes,
+              },
+            }),
           );
-          const found = chapterPool.filter((q) =>
-            q.factIds.some((id) => saveRef.current.platformer.collected.includes(id)),
-          );
-          const picked = selectQuestions(
-            found.length >= 2 ? found : chapterPool,
-            2,
-            saveRef.current,
-          );
-          setExam(picked);
-          setPhase('quiz');
+          setPhase('complete');
         },
         pause: () => setPhase('paused'),
         stats: setStats,
@@ -118,6 +118,7 @@ export default function Platformer() {
     if (autoStart.current) {
       game.start(saveRef.current.settings.music, saveRef.current.settings.music);
       setPhase('playing');
+      setHelp(true);
       autoStart.current = false;
     }
     return () => {
@@ -127,23 +128,29 @@ export default function Platformer() {
   }, [level, attempt, setSave]);
   useEffect(() => {
     if (!help) return;
-    const id = setTimeout(() => setHelp(false), 6500);
-    return () => clearTimeout(id);
+    const timer = setTimeout(() => setHelp(false), 6500);
+    return () => clearTimeout(timer);
   }, [help]);
   function start() {
     if (engine.current?.finished) {
-      if (exam.length) resume();
-      else playLevel(save.platformer.level, true);
+      playLevel(save.platformer.level, true);
       return;
     }
     engine.current?.start(save.settings.music, save.settings.music);
     setPhase('playing');
     setHelp(true);
+    setSave((s) => ({
+      ...s,
+      platformer: {
+        ...s.platformer,
+        checkpoints: { ...s.platformer.checkpoints, [level]: s.platformer.checkpoints[level] ?? 0 },
+      },
+    }));
     canvas.current?.focus();
   }
   function resume() {
     if (engine.current?.finished) {
-      setPhase(exam.length ? 'quiz' : 'complete');
+      setPhase('complete');
       return;
     }
     setPhase('playing');
@@ -155,10 +162,6 @@ export default function Platformer() {
     setPhase('paused');
   }
   function playLevel(next: number, restart = false) {
-    setExam([]);
-    setAnswers([]);
-    setPageQueue([]);
-    setTalk(null);
     setCleared(null);
     setSave((s) => ({
       ...s,
@@ -172,33 +175,12 @@ export default function Platformer() {
     setLevel(next);
     setAttempt((n) => n + 1);
   }
-  function finishChapter() {
-    const result = cleared!;
-    const first = !save.platformer.completed.includes(level);
-    const perfect = answers.length === 2 && answers.every((a) => a.correct);
-    setSave((s) =>
-      award({
-        ...s,
-        xp: s.xp + (first ? 150 : 0) + (perfect ? 30 : 0),
-        completedChapters: [...new Set([...s.completedChapters, level + 1])],
-        currentChapter: Math.max(s.currentChapter, Math.min(12, level + 2)),
-        platformer: {
-          ...s.platformer,
-          level: Math.min(11, level + 1),
-          unlocked: Math.max(s.platformer.unlocked, Math.min(11, level + 1)),
-          completed: [...new Set([...s.platformer.completed, level])],
-          checkpoints: { ...s.platformer.checkpoints, [level]: 0 },
-          bestTimes: engine.current?.startedFromBeginning
-            ? {
-                ...s.platformer.bestTimes,
-                [level]: Math.min(s.platformer.bestTimes[level] ?? Infinity, result.seconds),
-              }
-            : s.platformer.bestTimes,
-        },
-      }),
-    );
-    setExam([]);
-    setPhase('complete');
+  function finishTalk() {
+    setSave((s) => ({
+      ...s,
+      unlockedCards: [...new Set([...s.unlockedCards, ...lesson.factIds])],
+    }));
+    resume();
   }
   function toggleAudio() {
     const music = !save.settings.music;
@@ -212,33 +194,50 @@ export default function Platformer() {
       engine.current?.press(key);
     } else engine.current?.release(key);
   }
-  const scene = events.find((e) => e.id === talk);
   const playing = phase === 'playing';
+  const hasProgress =
+    save.platformer.collected.length > 0 ||
+    Object.keys(save.platformer.checkpoints).length > 0 ||
+    save.platformer.completed.length > 0;
+  const rank = cleared
+    ? cleared.deaths === 0 && cleared.hearts >= 4
+      ? 'S'
+      : cleared.deaths === 0
+        ? 'A'
+        : 'B'
+    : '';
   return (
     <main className={'platform-shell ' + (playing ? 'is-playing' : '')}>
       <canvas
         ref={canvas}
         className="platform-canvas"
         tabIndex={0}
-        aria-label="Franklin platformer. Move with A and D or arrow keys. Space to double jump. Shift to dash. E to talk or enter the print shop. Escape to pause."
+        aria-label="Play as Franklin. A and D to move. Space to double jump. J or click to attack. Shift to dash. E to talk. Escape to pause."
       />
       <div className="platform-top">
         {phase !== 'title' && (
           <div className="platform-hud">
             <span className="platform-hearts" aria-label={`${stats.hearts} hearts`}>
-              {Array.from({ length: 3 }, (_, i) => (
+              {Array.from({ length: 5 }, (_, i) => (
                 <Heart
                   key={i}
-                  size={18}
+                  size={16}
                   fill={i < stats.hearts ? 'currentColor' : 'none'}
                   className={i < stats.hearts ? '' : 'lost'}
                 />
               ))}
             </span>
-            <span className="page-counter">
-              <BookOpen size={16} />
-              {stats.pages}
-              <small>/{stats.total}</small>
+            <span className={'weapon-badge ' + (stats.fury ? 'powered' : '')} title={weapon.action}>
+              <WeaponIcon kind={weapon.kind} color={weapon.color} />
+              <span>
+                {weapon.name}
+                <i
+                  style={{
+                    transform: `scaleX(${Math.max(0, Math.min(1, stats.weaponReady))})`,
+                    background: weapon.color,
+                  }}
+                />
+              </span>
             </span>
             <span className="hud-chapter">{roman(level + 1)}</span>
           </div>
@@ -271,7 +270,7 @@ export default function Platformer() {
           <div className="platform-title-actions">
             <button className="platform-play" onClick={start}>
               <Play size={20} fill="currentColor" />
-              {save.platformer.collected.length ? 'Continue' : 'Play'}
+              {hasProgress ? 'Continue' : 'Play'}
             </button>
             <button className="platform-secondary" onClick={() => setPhase('levels')}>
               Chapters
@@ -284,6 +283,17 @@ export default function Platformer() {
           </div>
         </section>
       )}
+      {playing && stats.guardianHp > 0 && (
+        <div
+          className="guardian-hud"
+          aria-label={`Ink guardian: ${stats.guardianHp} of ${stats.guardianMax} health`}
+        >
+          <span>INK GUARDIAN</span>
+          <div>
+            <i style={{ transform: `scaleX(${stats.guardianHp / stats.guardianMax})` }} />
+          </div>
+        </div>
+      )}
       {playing && help && (
         <div className="platform-help">
           <span>
@@ -294,28 +304,14 @@ export default function Platformer() {
             <kbd>Space</kbd> Double jump
           </span>
           <span>
+            <kbd>J</kbd> / click · Attack
+          </span>
+          <span>
             <kbd>Shift</kbd> Dash
           </span>
           <span>
             <kbd>E</kbd> Talk
           </span>
-        </div>
-      )}
-      {playing && pageQueue.length > 0 && (
-        <div className="pickup-companion">
-          <Conversation
-            key={pageQueue[0]}
-            compact
-            lines={[
-              {
-                speaker: "Franklin's journal",
-                text: factById[pageQueue[0]].details,
-                emphasis: factById[pageQueue[0]].answer,
-              },
-            ]}
-            onFinish={() => setPageQueue((queue) => queue.slice(1))}
-            finishLabel="Next memory"
-          />
         </div>
       )}
       {playing && (
@@ -345,29 +341,31 @@ export default function Platformer() {
                 E
               </button>
             )}
-            <button
-              aria-label="Dash"
-              onPointerDown={(e) => pointer(e, 'dash', true)}
-              onPointerUp={(e) => pointer(e, 'dash', false)}
-              onPointerCancel={(e) => pointer(e, 'dash', false)}
-            >
-              <Zap />
-            </button>
-            <button
-              className="touch-jump"
-              aria-label="Jump"
-              onPointerDown={(e) => pointer(e, 'jump', true)}
-              onPointerUp={(e) => pointer(e, 'jump', false)}
-              onPointerCancel={(e) => pointer(e, 'jump', false)}
-            >
-              <ArrowUp />
-            </button>
+            {(['dash', 'attack', 'jump'] as const).map((key) => (
+              <button
+                key={key}
+                className={'touch-' + key}
+                aria-label={key === 'dash' ? 'Dash' : key === 'attack' ? 'Attack' : 'Jump'}
+                onPointerDown={(e) => pointer(e, key, true)}
+                onPointerUp={(e) => pointer(e, key, false)}
+                onPointerCancel={(e) => pointer(e, key, false)}
+              >
+                {key === 'dash' ? <Zap /> : key === 'attack' ? <Swords /> : <ArrowUp />}
+              </button>
+            ))}
           </div>
         </div>
       )}
       {phase === 'paused' && (
         <Dialog title="Paused" onClose={resume}>
           <div className="platform-pause-menu">
+            <div className="loadout-preview">
+              <WeaponIcon kind={weapon.kind} color={weapon.color} />
+              <div>
+                <strong>{weapon.name}</strong>
+                <p>{weapon.action}</p>
+              </div>
+            </div>
             <button className="platform-play" onClick={resume}>
               <Play size={18} />
               Resume
@@ -387,7 +385,7 @@ export default function Platformer() {
               <button onClick={() => setPhase('title')}>Title screen</button>
             </div>
             <p className="small muted">
-              Move: A / D or arrows · Jump: Space · Dash: Shift · Talk: E
+              Move: A / D · Jump: Space · Attack: J or click · Dash: Shift · Talk: E
             </p>
           </div>
         </Dialog>
@@ -399,88 +397,71 @@ export default function Platformer() {
           onClose={() => (engine.current?.started ? resume() : setPhase('title'))}
         >
           <div className="platform-levels">
-            {chapters.map((chapter, i) => {
-              const count = facts.filter((f) => f.chapter === i + 1).length,
-                found = save.platformer.collected.filter(
-                  (id) => factById[id].chapter === i + 1,
-                ).length;
-              return (
-                <button
-                  key={chapter.id}
-                  disabled={i > save.platformer.unlocked}
-                  onClick={() => playLevel(i)}
-                >
-                  <span>{roman(i + 1)}</span>
-                  <div>
-                    <strong>{chapter.title}</strong>
-                    <small>
-                      {i > save.platformer.unlocked ? 'Locked' : `${found}/${count} pages`}
-                      {save.platformer.bestTimes[i] !== undefined
-                        ? ' · ' + formatTime(save.platformer.bestTimes[i])
-                        : ''}
-                    </small>
-                  </div>
-                  {save.platformer.completed.includes(i) && <Check size={17} />}
-                </button>
-              );
-            })}
+            {chapters.map((chapter, i) => (
+              <button
+                key={chapter.id}
+                disabled={i > save.platformer.unlocked}
+                onClick={() => playLevel(i)}
+              >
+                <WeaponIcon kind={weapons[i].kind} color={weapons[i].color} />
+                <div>
+                  <strong>{chapter.title}</strong>
+                  <small>
+                    {i > save.platformer.unlocked ? 'Locked · ' : ''}
+                    {weapons[i].name}
+                    {save.platformer.bestTimes[i] !== undefined
+                      ? ' · ' + formatTime(save.platformer.bestTimes[i])
+                      : ''}
+                  </small>
+                </div>
+                {save.platformer.completed.includes(i) && <Check size={17} />}
+              </button>
+            ))}
           </div>
         </Dialog>
       )}
-      {phase === 'talk' && scene && (
-        <Dialog className="platform-dialogue" title={scene.title} onClose={resume}>
-          <SceneConversation key={scene.id} scene={scene} onClose={resume} />
-        </Dialog>
-      )}
-      {phase === 'quiz' && exam[examIndex] && (
-        <Dialog
-          title={`At the press · ${examIndex + 1} / ${exam.length}`}
-          onClose={() => {
-            setPhase('paused');
-          }}
-        >
-          <div className="platform-quiz">
-            <QuestionCard
-              key={exam[examIndex].id}
-              question={exam[examIndex]}
-              initialAnswer={answers.find((a) => a.questionId === exam[examIndex].id)}
-              onResolved={(a) =>
-                setAnswers((xs) => [...xs.filter((x) => x.questionId !== a.questionId), a])
-              }
-              onContinue={() =>
-                examIndex < exam.length - 1 ? setExamIndex(examIndex + 1) : finishChapter()
-              }
-              continueLabel={
-                examIndex < exam.length - 1 ? 'Set the next line' : 'Print the chapter'
-              }
-            />
-          </div>
+      {phase === 'talk' && (
+        <Dialog className="platform-dialogue" title={lesson.title} onClose={resume}>
+          <small className="dialogue-paraphrase">The main idea · Source paraphrase</small>
+          <Conversation
+            key={level}
+            lines={lesson.lines.map((text) => ({
+              speaker: 'Story guide',
+              text,
+              sourcePages: lesson.sourcePages,
+            }))}
+            onFinish={finishTalk}
+            finishLabel="Let’s go"
+          />
         </Dialog>
       )}
       {phase === 'complete' && cleared && (
         <section className="platform-complete">
-          <span className="clear-medal">
-            <Trophy size={34} />
-          </span>
-          <span className="platform-overline">CHAPTER {roman(level + 1)} COMPLETE</span>
-          <h1>{level === 11 ? 'A life in print.' : 'Fresh off the press.'}</h1>
+          <span className="clear-rank">{rank}</span>
+          <span className="platform-overline">CHAPTER {roman(level + 1)} CLEAR</span>
+          <h1>{level === 11 ? 'A life in print.' : 'On to the next adventure.'}</h1>
           <div className="level-results">
             <div>
-              <BookOpen size={20} />
-              <strong>
-                {cleared.pages}/{cleared.total}
-              </strong>
-              <span>Pages</span>
+              <strong>{cleared.score.toLocaleString()}</strong>
+              <span>Score</span>
             </div>
             <div>
               <strong>{formatTime(cleared.seconds)}</strong>
               <span>Time</span>
             </div>
             <div>
-              <strong>{answers.filter((a) => a.correct).length}/2</strong>
-              <span>Recall</span>
+              <strong>×{cleared.bestCombo}</strong>
+              <span>Best combo</span>
             </div>
           </div>
+          {level < 11 && (
+            <div className="next-weapon">
+              <WeaponIcon kind={weapons[level + 1].kind} color={weapons[level + 1].color} />
+              <span>
+                Next up<strong>{weapons[level + 1].name}</strong>
+              </span>
+            </div>
+          )}
           <div className="platform-title-actions">
             {level < 11 ? (
               <button className="platform-play" onClick={() => playLevel(level + 1, true)}>
@@ -488,8 +469,8 @@ export default function Platformer() {
                 <ArrowRight size={20} />
               </button>
             ) : (
-              <a className="platform-play" href="#exam">
-                Final exam
+              <a className="platform-play" href="#quiz">
+                Quiz
                 <ArrowRight size={20} />
               </a>
             )}
@@ -498,9 +479,6 @@ export default function Platformer() {
               Replay
             </button>
           </div>
-          {cleared.pages < cleared.total && (
-            <p>{cleared.total - cleared.pages} pages remain to discover.</p>
-          )}
         </section>
       )}
     </main>

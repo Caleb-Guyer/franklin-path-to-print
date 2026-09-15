@@ -1,3 +1,4 @@
+import type { WeaponKind } from './loadouts';
 /** Original procedural soundtrack and arcade effects; no downloads or audio services. */
 export class GameAudio {
   private context?: AudioContext;
@@ -156,9 +157,36 @@ export class GameAudio {
       this.next += 60 / (112 + (this.theme % 3) * 6) / 4;
     }
   }
-  play(name: 'jump' | 'dash' | 'page' | 'hit' | 'bounce' | 'checkpoint' | 'clear', chain = 1) {
+  playCombat(kind: WeaponKind) {
     if (!this.context || !this.effects) return;
     const t = this.context.currentTime;
+    if (['axe', 'hammer', 'glaive', 'spear', 'rapier'].includes(kind)) {
+      this.tone(kind === 'hammer' ? 105 : 270, t, 0.15, 0.35, 'triangle', true, 55);
+      this.tone(900, t, 0.07, 0.1, 'sawtooth', true, 100);
+    } else {
+      this.tone(
+        kind === 'comet' ? 410 : 700,
+        t,
+        0.11,
+        0.2,
+        'triangle',
+        true,
+        kind === 'comet' ? 850 : 170,
+      );
+    }
+  }
+  play(
+    name:
+      'jump' | 'dash' | 'page' | 'hit' | 'bounce' | 'checkpoint' | 'clear' | 'strike' | 'defeat',
+    chain = 1,
+  ) {
+    if (!this.context || !this.effects) return;
+    const t = this.context.currentTime;
+    if (name === 'strike') this.tone(115, t, 0.07, 0.3, 'triangle', true, 48);
+    if (name === 'defeat') {
+      this.tone(480 + Math.min(chain, 6) * 80, t, 0.13, 0.25, 'triangle', true);
+      this.tone(730 + Math.min(chain, 6) * 80, t + 0.045, 0.18, 0.18, 'sine', true);
+    }
     if (name === 'jump') this.tone(180, t, 0.13, 0.35, 'square', true, 410);
     if (name === 'dash') this.tone(600, t, 0.12, 0.25, 'sawtooth', true, 90);
     if (name === 'page') {

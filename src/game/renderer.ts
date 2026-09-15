@@ -1,5 +1,6 @@
 import type { PlatformGame } from './platformer';
-import type { Theme } from './world';
+import { canEnterExit, type Theme } from './world';
+import { drawWeapon, drawEnemy, drawCombat } from './combat-art';
 const palettes: Record<
   Theme,
   {
@@ -251,21 +252,15 @@ export function drawWorld(c: CanvasRenderingContext2D, g: PlatformGame) {
     }
   }
   if (w.theme === 'library') {
-    for (let i = 0; i < Math.ceil(width / 180) + 2; i++) {
-      const x = i * 180 - ((camera * 0.55) % 180);
-      pixel(c, x, 145, 10, 360, '#262b3c');
-      for (let j = 0; j < 4; j++) {
-        pixel(c, x, 200 + j * 71, 160, 5, '#967c6355');
-        for (let k = 0; k < 13; k++)
-          pixel(
-            c,
-            x + 12 + k * 10,
-            162 + j * 71 + (k % 3) * 5,
-            7,
-            38 - (k % 3) * 5,
-            ['#c896695c', '#669a9b70', '#a66e8270'][k % 3],
-          );
-      }
+    for (let i = 0; i < Math.ceil(width / 240) + 2; i++) {
+      const x = i * 240 - ((camera * 0.55) % 240);
+      pixel(c, x, 140, 15, 380, '#cbbca91b');
+      pixel(c, x - 9, 140, 33, 12, '#cebda329');
+      c.strokeStyle = '#c0b89d24';
+      c.lineWidth = 9;
+      c.beginPath();
+      c.arc(x + 120, 230, 105, Math.PI, 0);
+      c.stroke();
     }
   }
   c.fillStyle = w.theme === 'harbor' ? '#12324b' : '#14283b';
@@ -345,54 +340,72 @@ export function drawWorld(c: CanvasRenderingContext2D, g: PlatformGame) {
     pixel(c, x + 3, spring.y + 3, spring.w - 6, 4, '#73d0b6');
     pixel(c, x, spring.y, spring.w, 4, '#c0f4cf');
   }
-  for (const spike of w.spikes) {
-    const x = spike.x - camera;
-    c.fillStyle = '#8edcde';
-    for (let k = 0; k < 4; k++) {
-      c.beginPath();
-      c.moveTo(x + k * 9, spike.y + 14);
-      c.lineTo(x + k * 9 + 4, spike.y);
-      c.lineTo(x + k * 9 + 9, spike.y + 14);
-      c.fill();
-    }
-  }
-  for (const page of w.pages) {
-    if (page.collected) continue;
-    const x = page.x - camera,
-      y = page.y + Math.sin(time * 3 + page.x) * 4;
-    if (x < -30 || x > width + 30) continue;
-    const halo = c.createRadialGradient(x, y, 0, x, y, 26);
-    halo.addColorStop(0, '#ffe3a343');
-    halo.addColorStop(1, '#ffe3a300');
-    c.fillStyle = halo;
-    c.fillRect(x - 26, y - 26, 52, 52);
+  for (const pickup of w.pickups) {
+    if (pickup.collected) continue;
+    const x = pickup.x - camera,
+      y = pickup.y + Math.sin(time * 3) * 3;
     c.save();
     c.translate(x, y);
-    c.rotate(Math.sin(time * 2 + page.x) * 0.08);
-    pixel(c, -7, -10, 15, 21, '#7d5b42');
-    pixel(c, -8, -11, 14, 20, '#f7dc9b');
-    pixel(c, -5, -6, 8, 1, '#a78154');
-    pixel(c, -5, -2, 7, 1, '#a78154');
-    pixel(c, -5, 2, 5, 1, '#a78154');
-    pixel(c, 3, -11, 3, 4, '#fff0c1');
+    c.fillStyle = pickup.kind === 'heart' ? '#ffb7a6' : '#d9aeff';
+    c.shadowColor = c.fillStyle;
+    c.shadowBlur = 12;
+    if (pickup.kind === 'heart') {
+      c.beginPath();
+      c.moveTo(0, 9);
+      c.bezierCurveTo(-22, -4, -8, -18, 0, -8);
+      c.bezierCurveTo(8, -18, 22, -4, 0, 9);
+      c.fill();
+    } else {
+      c.beginPath();
+      c.moveTo(0, -14);
+      c.lineTo(11, 0);
+      c.lineTo(0, 14);
+      c.lineTo(-11, 0);
+      c.fill();
+    }
     c.restore();
   }
-  for (const enemy of w.enemies) {
-    if (!enemy.alive) continue;
-    const x = enemy.x - camera,
-      y = enemy.y + Math.sin(time * 5 + enemy.phase) * 3;
-    if (x < -50 || x > width + 50) continue;
-    c.fillStyle = '#112034';
-    c.beginPath();
-    c.ellipse(x + 14, y + 17, 17, 14, Math.sin(time * 3) * 0.2, 0, Math.PI * 2);
-    c.fill();
-    for (let i = 0; i < 5; i++)
-      pixel(c, x + i * 6 - 2, y + 23 + Math.sin(time * 5 + i) * 4, 6, 8, '#112034');
-    pixel(c, x + 6, y + 10, 6, 6, '#d3b8f0');
-    pixel(c, x + 18, y + 10, 6, 6, '#d3b8f0');
-    pixel(c, x + 8, y + 12, 2, 3, '#202039');
-    pixel(c, x + 20, y + 12, 2, 3, '#202039');
+  for (const checkpoint of w.checkpoints.slice(1)) {
+    const x = checkpoint - camera;
+    lantern(c, x, 475, p.glow);
+    pixel(c, x - 6, 508, 32, 12, '#2a454b');
   }
+  for (const gate of w.gates) {
+    if (gate.open) continue;
+    const x = gate.x - camera;
+    if (x > width + 40 || x < -40) continue;
+    const glow = c.createLinearGradient(x - 18, 0, x + gate.w + 18, 0);
+    glow.addColorStop(0, '#bb89dc00');
+    glow.addColorStop(0.5, '#bb89dc88');
+    glow.addColorStop(1, '#bb89dc00');
+    c.fillStyle = glow;
+    c.fillRect(x - 18, 100, gate.w + 36, 420);
+    c.strokeStyle = '#d9b0e9aa';
+    c.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const y = 130 + i * 48 + Math.sin(time * 3 + i) * 5;
+      c.beginPath();
+      c.moveTo(x, y);
+      c.lineTo(x + gate.w, y + 24);
+      c.lineTo(x, y + 48);
+      c.stroke();
+    }
+    pixel(c, x - 10, 512, gate.w + 20, 8, '#bd9fd0');
+    if (Math.abs(g.player.x - gate.x) < 140)
+      text(
+        c,
+        gate.zone === 3 ? 'DEFEAT THE GUARDIAN' : 'CLEAR THE ENCOUNTER',
+        x - 5,
+        360,
+        10,
+        '#ebc8f0',
+        'right',
+      );
+  }
+  for (const enemy of w.enemies)
+    if (enemy.x - camera > -100 && enemy.x - camera < width + 100)
+      drawEnemy(c, enemy, camera, time);
+  drawCombat(c, g);
   const ex = w.exit.x - camera;
   if (ex < width + 150) {
     lantern(c, ex - 18, 442, p.glow);
@@ -404,7 +417,7 @@ export function drawWorld(c: CanvasRenderingContext2D, g: PlatformGame) {
     pixel(c, ex + 20, w.exit.y + 70, 40, 8, '#c7ab7e');
     pixel(c, ex + 15, w.exit.y + 91, 48, 7, '#dcc69b');
     text(c, 'PRINT SHOP', ex + 38, w.exit.y - 16, 10);
-    if (g.started && Math.abs(g.player.x - w.exit.x) < 100) {
+    if (g.started && canEnterExit(w, g.player)) {
       pixel(c, ex - 2, w.exit.y - 58, 82, 23, '#0d2035ef');
       text(c, 'E · ENTER', ex + 39, w.exit.y - 42, 11);
     }
@@ -428,8 +441,8 @@ export function drawWorld(c: CanvasRenderingContext2D, g: PlatformGame) {
   c.fill();
   c.globalAlpha = 1;
   const blinking = player.invincible > 0 && Math.floor(time * 16) % 2 === 0;
-  if (g.running && g.chain >= 2 && g.elapsed < g.chainUntil)
-    text(c, `${g.chain} page streak`, player.x + 12 - camera, player.y - 13, 10, '#c1f1cc');
+  if (g.running && g.combat.combo >= 2 && g.combat.comboTime > 0)
+    text(c, `${g.combat.combo}× COMBO`, player.x + 12 - camera, player.y - 20, 11, '#c1f1cc');
   drawFranklin(
     c,
     player.x - camera,
@@ -439,6 +452,20 @@ export function drawWorld(c: CanvasRenderingContext2D, g: PlatformGame) {
     !player.grounded,
     blinking ? 0.35 : 1,
   );
+  drawWeapon(
+    c,
+    w.weapon.kind,
+    player.x + 12 - camera + player.facing * 11,
+    player.y + 24,
+    player.facing,
+    w.weapon.color,
+    g.combat.attackTime > 0,
+  );
+  for (const number of g.combat.numbers) {
+    c.globalAlpha = Math.min(1, number.life * 3);
+    text(c, String(number.amount), number.x - camera, number.y, 16, '#fff2ce');
+  }
+  c.globalAlpha = 1;
   for (const part of g.particles) {
     c.globalAlpha = Math.min(1, (part.life / part.max) * 2);
     pixel(c, part.x - camera, part.y, part.size, part.size, part.color);

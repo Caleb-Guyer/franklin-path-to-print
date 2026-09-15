@@ -1,6 +1,5 @@
-import { chapters, events } from '../data/chapters';
-import { characters } from '../data/characters';
-import { factById } from '../data/facts';
+import { chapters } from '../data/chapters';
+import { weapons, type Weapon } from './loadouts';
 export type Theme = 'garden' | 'boston' | 'harbor' | 'london' | 'philadelphia' | 'library';
 export interface Rect {
   x: number;
@@ -13,17 +12,23 @@ export interface Platform extends Rect {
   originY?: number;
   phase?: number;
 }
-export interface PagePickup {
-  x: number;
-  y: number;
-  id: string;
-  collected: boolean;
-}
+export type EnemyKind = 'skitter' | 'sentry' | 'flyer' | 'guardian';
 export interface Enemy extends Rect {
+  id: number;
+  kind: EnemyKind;
   baseX: number;
+  baseY: number;
   range: number;
   phase: number;
   alive: boolean;
+  hp: number;
+  maxHp: number;
+  facing: number;
+  state: 'patrol' | 'windup' | 'attack' | 'recover';
+  timer: number;
+  hurt: number;
+  zone: number;
+  vx: number;
 }
 export interface Stop {
   x: number;
@@ -32,22 +37,32 @@ export interface Stop {
   name: string;
   visited: boolean;
 }
+export interface Pickup {
+  x: number;
+  y: number;
+  kind: 'heart' | 'power';
+  collected: boolean;
+}
+export interface Gate extends Rect {
+  zone: number;
+  open: boolean;
+}
 export interface World {
   level: number;
   title: string;
   theme: Theme;
   width: number;
+  weapon: Weapon;
   platforms: Platform[];
-  pages: PagePickup[];
   enemies: Enemy[];
-  spikes: Rect[];
   springs: Rect[];
   stops: Stop[];
+  checkpoints: number[];
+  pickups: Pickup[];
+  gates: Gate[];
   exit: Rect;
 }
-export function makeWorld(level: number, collected: string[] = []): World {
-  const chapter = chapters[level];
-  const scenes = events.filter((e) => e.chapter === chapter.id);
+export function makeWorld(level: number): World {
   const theme: Theme = (
     [
       'garden',
@@ -65,116 +80,119 @@ export function makeWorld(level: number, collected: string[] = []): World {
     ] as const
   )[level];
   const platforms: Platform[] = [],
-    pages: PagePickup[] = [],
     enemies: Enemy[] = [],
-    spikes: Rect[] = [],
     springs: Rect[] = [],
-    stops: Stop[] = [];
-  const width = scenes.length * 900 + 480;
-  // Every zone has a traversable ground route, an optional upper route, and a safe checkpoint.
-  for (let zone = 0; zone < scenes.length; zone++) {
-    const scene = scenes[zone],
-      x = zone * 900;
-    const heights = [
-      [432, 344, 292, 377],
-      [450, 366, 287, 396],
-      [408, 333, 268, 354],
-    ][(zone + level) % 3];
-    platforms.push(
-      { x, y: 520, w: 350, h: 100, kind: 'ground' },
-      { x: x + 425, y: 520, w: 255, h: 100, kind: 'ground' },
-      { x: x + 755, y: 520, w: 145, h: 100, kind: 'ground' },
-    );
-    platforms.push(
-      { x: x + 180, y: heights[0], w: 115, h: 17, kind: 'wood' },
-      { x: x + 310, y: heights[1], w: 115, h: 17, kind: 'roof' },
-      { x: x + 468, y: heights[2], w: 112, h: 17, kind: 'roof' },
-      { x: x + 630, y: heights[3], w: 110, h: 17, kind: 'wood' },
-    );
-    if (level >= 2)
-      platforms.push({
-        x: x + 350,
-        y: 440,
-        w: 66,
-        h: 15,
-        kind: 'moving',
-        originY: 440,
-        phase: zone * 1.7,
-      });
-    springs.push({ x: x + 141, y: 505, w: 27, h: 15 });
-    const fs = scene.factIds.map((id) => factById[id]);
-    const slots = [
-      [75, 469],
-      [244, heights[0] - 44],
-      [367, heights[1] - 43],
-      [522, heights[2] - 43],
-      [683, heights[3] - 44],
-      [800, 466],
-    ];
-    fs.forEach((f, i) => {
-      const [px, py] = slots[i % slots.length];
-      pages.push({
-        id: f.id,
-        x: x + px + Math.floor(i / slots.length) * 31,
-        y: py - Math.floor(i / slots.length) * 22,
-        collected: collected.includes(f.id),
-      });
-    });
-    if (zone > 0 || level > 0)
-      enemies.push({
-        x: x + 560,
-        y: 470,
-        w: 28,
-        h: 28,
-        baseX: x + 558,
-        range: 48,
-        phase: zone * 2.3,
-        alive: true,
-      });
-    if (level > 2 && zone % 2 === 1)
-      enemies.push({
-        x: x + 450,
-        y: heights[2] - 38,
-        w: 26,
-        h: 26,
-        baseX: x + 505,
-        range: 37,
-        phase: zone,
-        alive: true,
-      });
-    if (level >= 1) spikes.push({ x: x + 702, y: 566, w: 37, h: 14 });
-    const person = characters.find((c) => c.factIds.some((id) => scene.factIds.includes(id)));
-    stops.push({
-      x: x + 30,
-      y: 520,
-      eventId: scene.id,
-      name: scene.dialogue?.speaker.replace(/\s*\(.*?\)/g, '') ?? person?.name ?? scene.title,
-      visited: zone === 0,
+    pickups: Pickup[] = [];
+  function enemy(kind: EnemyKind, x: number, y: number, zone: number) {
+    const boss = kind === 'guardian',
+      size = boss ? 62 : kind === 'flyer' ? 30 : 32;
+    const hp = boss ? 12 + level : kind === 'sentry' ? 3 : 2;
+    enemies.push({
+      id: enemies.length,
+      kind,
+      x,
+      y: y - size,
+      w: size,
+      h: size,
+      baseX: x,
+      baseY: y - size,
+      range: boss ? 135 : 55,
+      phase: enemies.length * 1.3,
+      alive: true,
+      hp,
+      maxHp: hp,
+      facing: -1,
+      state: 'patrol',
+      timer: 1 + enemies.length * 0.17,
+      hurt: 0,
+      zone,
+      vx: 0,
     });
   }
-  platforms.push({ x: width - 480, y: 520, w: 480, h: 100, kind: 'ground' });
+  for (let zone = 0; zone < 3; zone++) {
+    const x = zone * 900;
+    if (zone === 1) platforms.push({ x, y: 520, w: 900, h: 100, kind: 'ground' });
+    else
+      platforms.push(
+        { x, y: 520, w: 380, h: 100, kind: 'ground' },
+        { x: x + 450, y: 520, w: 270, h: 100, kind: 'ground' },
+        { x: x + 795, y: 520, w: 105, h: 100, kind: 'ground' },
+      );
+    const heights = [
+      [435, 348, 300, 400],
+      [430, 357, 285, 381],
+      [419, 338, 280, 370],
+    ][(level + zone) % 3];
+    [190, 325, 490, 660].forEach((offset, i) =>
+      platforms.push({
+        x: x + offset,
+        y: heights[i],
+        w: 110,
+        h: 16,
+        kind: i % 2 ? 'roof' : 'wood',
+      }),
+    );
+    if (zone !== 1) springs.push({ x: x + 146, y: 505, w: 27, h: 15 });
+    if (level > 1)
+      platforms.push({
+        x: x + 378,
+        y: 443,
+        w: 62,
+        h: 15,
+        kind: 'moving',
+        originY: 443,
+        phase: zone * 1.4,
+      });
+    pickups.push({
+      x: x + 530,
+      y: heights[2] - 25,
+      kind: zone === 2 ? 'power' : 'heart',
+      collected: false,
+    });
+    enemy(zone === 0 ? 'skitter' : (level + zone) % 2 ? 'sentry' : 'skitter', x + 550, 520, zone);
+    if (zone > 0) enemy('skitter', x + 290, 520, zone);
+    if (zone === 1) enemy('sentry', x + 690, 520, zone);
+    if (zone === 2 && level > 0) enemy('flyer', x + 655, 408, zone);
+  }
+  platforms.push(
+    { x: 2700, y: 520, w: 800, h: 100, kind: 'ground' },
+    { x: 2850, y: 412, w: 100, h: 16, kind: 'wood' },
+    { x: 3140, y: 398, w: 105, h: 16, kind: 'wood' },
+  );
+  enemy('guardian', 3090, 520, 3);
+  pickups.push({ x: 2780, y: 491, kind: 'heart', collected: false });
   return {
     level,
-    title: chapter.title,
+    title: chapters[level].title,
     theme,
-    width,
+    width: 3500,
+    weapon: weapons[level],
     platforms,
-    pages,
     enemies,
-    spikes,
     springs,
-    stops,
-    exit: { x: width - 140, y: 414, w: 77, h: 106 },
+    stops: [{ x: 110, y: 520, eventId: `guide-${level}`, name: 'Story guide', visited: true }],
+    checkpoints: [70, 970, 1870, 2770],
+    pickups,
+    gates: [
+      { x: 1745, y: 0, w: 22, h: 520, zone: 1, open: false },
+      { x: 3320, y: 0, w: 24, h: 520, zone: 3, open: false },
+    ],
+    exit: { x: 3380, y: 414, w: 77, h: 106 },
   };
 }
 export const overlap = (a: Rect, b: Rect) =>
   a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+export const canEnterExit = (world: World, player: Rect) =>
+  world.gates.every((gate) => gate.open) &&
+  Math.abs(player.x - world.exit.x) < 100 &&
+  player.y > 330;
 export interface Controls {
   left: boolean;
   right: boolean;
   jump: boolean;
   dash: boolean;
   interact: boolean;
+  attack: boolean;
 }
 export interface Player extends Rect {
   vx: number;

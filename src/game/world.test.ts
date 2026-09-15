@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { facts } from '../data/facts';
-import { events } from '../data/chapters';
+import { factById } from '../data/facts';
+import { weapons, levelLessons } from './loadouts';
 import { freshSave, parseSave } from '../lib/game';
 import { makeWorld, movePlayer, newPlayer, type Controls, type Platform } from './world';
 
-const controls: Controls = { left: false, right: false, jump: true, dash: false, interact: false };
+const controls: Controls = {
+  left: false,
+  right: false,
+  jump: true,
+  dash: false,
+  interact: false,
+  attack: false,
+};
 const floor: Platform[] = [{ x: 0, y: 520, w: 10000, h: 100, kind: 'ground' }];
 const tick = (
   p: ReturnType<typeof newPlayer>,
@@ -15,32 +22,27 @@ const tick = (
 ) => movePlayer(p, input, { jump, dash }, platforms, 1 / 60);
 
 describe('playable source worlds', () => {
-  it('places every source fact and all 60 events exactly once across twelve worlds', () => {
+  it('gives every level one guide, a unique weapon and two compact source-backed teaching lines', () => {
     const worlds = Array.from({ length: 12 }, (_, i) => makeWorld(i));
-    const pickups = worlds.flatMap((w) => w.pages.map((p) => p.id));
-    expect(pickups.sort()).toEqual(facts.map((f) => f.id).sort());
-    expect(worlds.flatMap((w) => w.stops.map((s) => s.eventId)).sort()).toEqual(
-      events.map((e) => e.id).sort(),
-    );
+    expect(new Set(weapons.map((w) => w.kind)).size).toBe(12);
     for (const world of worlds) {
-      expect(world.pages.every((p) => p.x > 0 && p.x < world.width && p.y > 0)).toBe(true);
+      expect(world.stops).toHaveLength(1);
+      expect('pages' in world).toBe(false);
+      expect(world.pickups.length).toBeLessThanOrEqual(4);
+      expect(world.enemies.filter((e) => e.kind === 'guardian')).toHaveLength(1);
+      expect(world.gates).toHaveLength(2);
       expect(
         world.platforms.some(
           (p) => p.x <= world.exit.x && p.x + p.w >= world.exit.x + world.exit.w,
         ),
       ).toBe(true);
-      expect(
-        world.stops.every((s) =>
-          world.platforms.some((p) => p.kind === 'ground' && s.x >= p.x && s.x < p.x + p.w),
-        ),
-      ).toBe(true);
+      const lesson = levelLessons[world.level];
+      expect(lesson.lines).toHaveLength(2);
+      expect(lesson.lines.join(' ').split(/\s+/).length).toBeLessThanOrEqual(55);
+      expect(lesson.lines.every((line) => line.length <= 175)).toBe(true);
+      expect(lesson.factIds.every((id) => !!factById[id])).toBe(true);
+      expect(lesson.sourcePages.every((p) => p >= 1 && p <= 27)).toBe(true);
     }
-  });
-  it('retains collected pages on replay without removing other chapter pages', () => {
-    const initial = makeWorld(0);
-    const restored = makeWorld(0, [initial.pages[0].id, 'invalid']);
-    expect(restored.pages.filter((p) => p.collected)).toHaveLength(1);
-    expect(restored.pages).toHaveLength(initial.pages.length);
   });
   it('lets the movement physics traverse every full level and its gaps', () => {
     for (let level = 0; level < 12; level++) {
@@ -121,9 +123,21 @@ describe('save migration', () => {
     expect(parsed.platformer.level).toBe(0);
     expect(parsed.settings.music).toBe(true);
   });
+  it('starts old platformer saves at safe new checkpoints while keeping completed chapters', () => {
+    const old = JSON.parse(JSON.stringify(freshSave()));
+    delete old.platformer.combatVersion;
+    old.platformer.checkpoints = { 2: 4 };
+    old.platformer.completed = [0, 1];
+    old.platformer.unlocked = 2;
+    const save = parseSave(JSON.stringify(old));
+    expect(save.platformer.checkpoints).toEqual({});
+    expect(save.platformer.completed).toEqual([0, 1]);
+    expect(save.platformer.unlocked).toBe(2);
+  });
   it('round trips progress and rejects invalid checkpoints and card IDs', () => {
     const save = freshSave();
     save.platformer = {
+      combatVersion: 1,
       level: 3,
       unlocked: 3,
       collected: ['f001', 'fake'],

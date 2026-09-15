@@ -44,6 +44,7 @@ export interface Save {
   decisions: Record<string, number>;
   exams: ExamRecord[];
   platformer: {
+    combatVersion: number;
     level: number;
     unlocked: number;
     collected: string[];
@@ -76,6 +77,7 @@ export const freshSave = (): Save => ({
   decisions: {},
   exams: [],
   platformer: {
+    combatVersion: 1,
     level: 0,
     unlocked: 0,
     collected: [],
@@ -130,6 +132,7 @@ export function parseSave(raw: string | null): Save {
       bestStreak: numeric(parsed.bestStreak) ? parsed.bestStreak : 0,
       decisions: typeof parsed.decisions === 'object' && parsed.decisions ? parsed.decisions : {},
       platformer: {
+        combatVersion: 1,
         level: numeric(parsed.platformer?.level)
           ? Math.min(11, Math.floor(parsed.platformer.level))
           : 0,
@@ -140,9 +143,11 @@ export function parseSave(raw: string | null): Save {
           facts.some((f) => f.id === id),
         ),
         checkpoints: Object.fromEntries(
-          Object.entries(parsed.platformer?.checkpoints ?? {})
+          Object.entries(
+            parsed.platformer?.combatVersion === 1 ? (parsed.platformer?.checkpoints ?? {}) : {},
+          )
             .filter(
-              ([k, v]) => /^([0-9]|1[01])$/.test(k) && numeric(v) && Number.isInteger(v) && v <= 5,
+              ([k, v]) => /^([0-9]|1[01])$/.test(k) && numeric(v) && Number.isInteger(v) && v <= 3,
             )
             .map(([k, v]) => [k, Number(v)]),
         ),
@@ -150,7 +155,9 @@ export function parseSave(raw: string | null): Save {
           ? unique(parsed.platformer.completed.filter((n: unknown) => numeric(n) && n <= 11))
           : [],
         bestTimes: Object.fromEntries(
-          Object.entries(parsed.platformer?.bestTimes ?? {})
+          Object.entries(
+            parsed.platformer?.combatVersion === 1 ? (parsed.platformer?.bestTimes ?? {}) : {},
+          )
             .filter(([k, v]) => /^([0-9]|1[01])$/.test(k) && numeric(v))
             .map(([k, v]) => [k, Number(v)]),
         ),

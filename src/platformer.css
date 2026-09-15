@@ -697,3 +697,186 @@
     transition: none !important;
   }
 }
+
+.weapon-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+}
+.weapon-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.weapon-badge > span {
+  position: relative;
+  font-size: 12px;
+  padding-bottom: 7px;
+  white-space: nowrap;
+}
+.weapon-badge i {
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  transform-origin: left;
+  transition: transform 0.12s;
+  opacity: 0.75;
+}
+.weapon-badge.powered {
+  filter: drop-shadow(0 0 8px #dca5ff);
+}
+.guardian-hud {
+  position: absolute;
+  top: 98px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(340px, calc(100% - 52px));
+  text-align: center;
+  pointer-events: none;
+}
+.guardian-hud > span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #ead9ea;
+  text-shadow: 0 1px 5px #152033;
+}
+.guardian-hud > div {
+  height: 6px;
+  margin-top: 9px;
+  border: 1px solid #cfb8dd66;
+  background: #182a3cd9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.guardian-hud i {
+  display: block;
+  height: 100%;
+  background: #cca4e0;
+  transform-origin: left;
+  transition: transform 0.15s;
+}
+.loadout-preview {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 18px;
+}
+.loadout-preview .weapon-icon {
+  width: 50px;
+  height: 50px;
+}
+.loadout-preview strong {
+  color: #efd49e;
+}
+.loadout-preview p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #b9cac7;
+}
+.platform-levels .weapon-icon {
+  width: 38px;
+  height: 38px;
+}
+.next-weapon {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #c8ddd433;
+  border-radius: 12px;
+  padding: 13px 25px;
+  margin-top: 24px;
+  background: #112c3ac2;
+  text-align: left;
+}
+.next-weapon span {
+  font-size: 10px;
+  color: #b3c9bd;
+}
+.next-weapon strong {
+  display: block;
+  margin-top: 5px;
+  color: #efdab2;
+  font-size: 15px;
+}
+.clear-rank {
+  font:
+    italic 74px Georgia,
+    serif;
+  color: #f5d39b;
+  text-shadow: 0 0 30px #f0ba5544;
+  margin-bottom: 15px;
+}
+.platform-complete .platform-title-actions {
+  margin-top: 25px;
+}
+@media (max-width: 600px) {
+  .platform-hud {
+    gap: 10px;
+    padding: 9px 11px;
+  }
+  .platform-hearts {
+    gap: 2px;
+  }
+  .platform-hearts svg {
+    width: 12px;
+  }
+  .weapon-badge {
+    gap: 6px;
+  }
+  .weapon-badge > span {
+    font-size: 10px;
+  }
+  .weapon-badge .weapon-icon {
+    width: 25px;
+    height: 25px;
+  }
+  .touch-pad {
+    left: 14px;
+    right: 14px;
+  }
+  .touch-move,
+  .touch-actions {
+    gap: 7px;
+  }
+  .touch-pad .touch-dash {
+    width: 43px;
+    height: 43px;
+  }
+  .touch-pad .touch-attack {
+    width: 59px;
+    height: 59px;
+    color: #ffcfa1;
+    background: #664c447a;
+    border-color: #edb98e88;
+  }
+  .touch-pad .touch-jump {
+    width: 59px;
+    height: 59px;
+  }
+  .touch-pad .touch-move button {
+    width: 49px;
+    height: 49px;
+  }
+  .clear-rank {
+    font-size: 60px;
+  }
+  .platform-complete h1 {
+    font-size: 30px;
+  }
+}
+@media (max-height: 500px) and (min-width: 600px) {
+  .clear-rank {
+    display: none;
+  }
+  .next-weapon {
+    padding: 6px 15px;
+    margin-top: 15px;
+  }
+  .guardian-hud {
+    top: 75px;
+  }
+}

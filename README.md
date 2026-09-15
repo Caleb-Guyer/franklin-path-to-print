@@ -2,18 +2,21 @@
 
 ### Part One — The Apprentice
 
-Play as Franklin in a **2D platform adventure**: leap across rooftops, dash through ink creatures, follow page trails and reach the printing press. Twelve chapter worlds turn the supplied Part One excerpt into a playable journey, with original music and study tools available from the menu.
+Play as Franklin in a **2D platform adventure**: leap across rooftops, fight ink creatures and defeat each level’s guardian with a new weapon. Twelve chapter worlds turn the supplied Part One excerpt into a playable journey, with original music and study tools available from the menu.
 
 ![Franklin platform adventure](docs/screenshots/home.png)
 
 ## What is inside
 
-- **12 platforming levels** with double jumps, air dash, bounce pads, moving platforms, ink creatures, safe checkpoints and optional upper routes. All 252 facts appear as collectible pages; all 60 scenes appear as conversation stops.
-- Original procedural music with chapter variations, movement and pickup sounds, rising page-streak tones and a saved mute switch. Music lowers automatically during speech.
-- **Spoken character conversations** with original animated pixel portraits, letter-by-letter text, moving key words, short lines, replay, skip and Auto/Hold controls. Collected page memories play while you move; questions, answer explanations and flashcards also have narration.
-- A compact hearts/pages HUD, keyboard and touch controls, saved chapter progress, replay, collectible completion and personal best times for runs started from the beginning. Study tools stay in the menu.
+- **12 combat platforming levels**, each with a different weapon: bow, axe, rapier, boomerang, hammer, spear, throwing daggers, crossbow, wind fan, glaive, scatter blaster and comet staff.
+- Charging skitters, ranged sentries, flyers and a guardian. Enemies telegraph attacks; weapons have distinct ranges, timing, projectiles, piercing, return hits or area effects. Defeating an encounter opens its barrier.
+- Double jumps, air dash, bounce pads, moving platforms, safe checkpoints and optional upper routes. A few health pickups and one temporary power boost reward exploration. There are **no book pickups**.
+- **One NPC per level**, with just two short spoken lines explaining the main idea. No quiz interrupts combat or blocks the exit; clear the guardian to advance.
+- Original procedural music with chapter variations, weapon and impact sounds, rising combat-combo tones and a saved mute switch. Music lowers automatically during speech.
+- **Spoken character conversations** with original animated pixel portraits, letter-by-letter text, moving key words, short lines, replay, skip and Auto/Hold controls. The single guide gives the level’s main idea; the separate quiz, answer explanations and flashcards also have narration.
+- A compact health/weapon HUD, keyboard and touch controls, saved chapter progress, combat scores, clear ranks, combos and personal best times for runs started from the beginning. Study tools stay in the menu.
 - **272 multiple-choice questions**: specific factual prompts, chronology and relationships. Choose an answer with one click or keys 1–4; it scores immediately, without a confidence rating. Distractors reuse real details from the source bank.
-- **12 chronological story chapters, 60 playable scenes**, and a recall boss trial at each chapter’s end.
+- An optional detailed Story section with **12 chronological chapters, 60 scenes**, and recall trials. Detailed study stays available through the menu.
 - **252 source-linked memory cards**, 66 character profiles and an interactive relationship web, a 60-item timeline, and a schematic location map.
 - Historical decisions with a separate personal-choice mode; the source’s outcomes stay fixed. Dialogue reconstruction is explicitly labeled paraphrase.
 - Quiz: Easy, Normal, Hard, Nightmare, 10/20/40-question rounds and Everything. A separate balanced **20-question Final Exam** spans all 12 chapters and mixes factual detail, relationships, books, places, ideas and chronology, all presented as multiple choice.
@@ -29,11 +32,14 @@ Play as Franklin in a **2D platform adventure**: leap across rooftops, dash thro
 | Move                    | A / D or Left / Right |
 | Jump / double jump      | Space, W or Up        |
 | Dash                    | Shift or X            |
+| Attack (hold to repeat) | J, K, F or left click |
 | Talk / enter print shop | E or Enter            |
 | Pause                   | Escape                |
 | Answer a question       | 1 / 2 / 3 / 4         |
 
-Phones and tablets show touch controls. Collect pages along the route, talk to characters when you choose, and answer two multiple-choice prompts at the chapter’s printing press. Missed answers feed the same adaptive review system as Quiz mode. Falls return you to your latest checkpoint. The Chapters menu shows remaining pages and personal bests.
+Phones and tablets show movement, attack, dash and jump buttons. Hold attack to keep firing or swinging. Ranged weapons assist aim toward nearby enemies in front of Franklin. Dash through danger, watch for an enemy’s warning flash, and use the recovery window to counterattack. Defeat the arena enemies and guardian, then enter the print shop. The next chapter equips its new weapon automatically.
+
+Falls return you to your checkpoint. Checkpoints restore a little health; health pickups restore two hearts. The purple power pickup doubles damage temporarily. Chapter completion awards XP and unlocks its detailed journal cards without putting them in the playfield. Old completed chapters and study progress migrate; old platformer checkpoint positions and best times are reset for the new map layout.
 
 ## Play locally
 
@@ -76,7 +82,7 @@ The only historical source is the user-provided **`Franklin Part 1.pdf`**, suppl
 
 [The complete page-by-page source outline](docs/source-outline.md) records the extraction before conversion to scenes and questions. Every fact, question, scene, character and location has `sourcePages`. These are **PDF spread numbers 1–27**, not printed book page numbers. Source buttons open the actual scans so the reader can verify details.
 
-No external summaries or biographical sources were used for game facts. Uncertainty and retrospective chronology are preserved. Anonymous names are not supplied from outside knowledge. The later thirteen-virtue program is not inserted into this excerpt. Virtue/idea drills use the reflections actually present in Part One. Editorial material is distinguished from Franklin’s narrative. Platform routes, ink creatures, jumping abilities, scenery and the original canvas/SVG artwork are playful illustrations, not biographical claims; dialogue is paraphrased, not invented verbatim quotation.
+No external summaries or biographical sources were used for game facts. Uncertainty and retrospective chronology are preserved. Anonymous names are not supplied from outside knowledge. The later thirteen-virtue program is not inserted into this excerpt. Virtue/idea drills use the reflections actually present in Part One. Editorial material is distinguished from Franklin’s narrative. Platform routes, fantasy weapons, combat, the story guide, ink creatures, jumping abilities, scenery and the original canvas/SVG artwork are playful illustrations, not biographical claims; dialogue is paraphrased, not invented verbatim quotation.
 
 ## Publish to GitHub Pages
 
@@ -131,9 +137,9 @@ npm run check
 npm run test:e2e
 ```
 
-`check` runs formatting, TypeScript, 30 unit/data/physics/speech-format tests and the production build. Thirteen browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
+`check` runs formatting, TypeScript, 36 unit/data/physics/combat/speech-format tests and the production build. Fourteen browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
 
-Browser tests play a full platformer level through the actual movement inputs, test music synthesis, keyboard and touch movement, pause, NPC conversations, saved pickups and chapter advancement. Voice tests verify line reveal, replay, auto/hold, cancellation, music ducking, immediate choice scoring, no confidence step and speech-unavailable fallback. They also cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
+Browser tests play full combat levels with bow, axe, boomerang and comet staff through actual movement/attack inputs, then verify defeated guardians, open barriers, saved progression and the next weapon. They test music, keyboard/touch controls, pause, the single short guide conversation and saved checkpoints. Voice tests verify line reveal, replay, auto/hold, cancellation, music ducking, immediate choice scoring, no confidence step and speech-unavailable fallback. They also cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
 
 ## Project structure
 
@@ -141,7 +147,7 @@ Browser tests play a full platformer level through the actual movement inputs, t
 src/
   data/           Facts, questions, chapters, events, people, places, cards
   components/     Save provider, accessible dialogs, source viewer, choice questions and animated conversations
-  game/           Canvas renderer, movement physics, worlds and original Web Audio music
+  game/           Canvas artwork, weapon loadouts, combat, movement physics, worlds and original music
   pages/          Platformer, story journal, quiz/bosses, library tools and settings
   lib/            Choice conversion, speech, grading, adaptive review, saves and tests
   App.tsx         Hash navigation and optional WebMCP integration

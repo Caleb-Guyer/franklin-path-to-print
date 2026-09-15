@@ -14,7 +14,7 @@
 ## Automated checks
 
 - `npm install` completed with a committed lockfile.
-- `npm run check`: TypeScript, 30 unit/data/physics/speech-format tests, production build.
+- `npm run check`: TypeScript, 36 unit/data/physics/combat/speech-format tests, production build.
 - Data validation checks identifiers, page bounds, references, matching pairs, chronological order, scene coverage and question coverage per chapter.
 - Grading tests canonical answers, aliases, punctuation, number normalization, mistaken names, incomplete matching and incorrect chronology.
 - Memory tests cover wrong-answer priority, Trouble List removal, mastery, save serialization and corrupted-data recovery.
@@ -22,7 +22,7 @@
 - End-to-end tests actually answer all story recall prompts and all twelve 10-question trials, then verify all 60 scenes, 12 chapters and 252 cards are unlocked.
 - Exam test answers 18 of 20 correctly, checks 90%, saved mistakes and achievement, retries misses and reloads the save.
 - UI tests exercise every major screen and 390px phone layout, scan viewing, mobile navigation and confirmed/cancelled reset.
-- Additional browser flows verify all 272 questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Thirteen browser tests cover the learning tools and the platformer.
+- Additional browser flows verify all 272 questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Fourteen browser tests cover the learning tools and the platformer.
 - Production tests request the PDF and every scan and refresh hash routes under both `/franklin-path-to-print/` and `/franklin-part-one-game/`.
 
 ## Dialogue and multiple-choice checks
@@ -36,10 +36,12 @@
 
 ## Platformer checks
 
-- Every fact is a physical page pickup exactly once; every source scene has a checkpoint conversation.
+- Each of the 12 levels has one NPC, two source-backed main-idea lines, one unique weapon, two combat barriers and a guardian. There are no book pickups. The complete factual bank remains in the optional study tools.
+- Unit checks exercise all 12 weapon attacks, cooldowns, fast-projectile collision, crossbow piercing, boomerang return hits, enemy windups and arena clearing.
+- A locked exit cannot be entered before its combat encounters are cleared.
 - Simulated movement traverses the ground route of all twelve worlds without falling. Unit tests cover double jumps, variable jump height, late jumps, dash cooldown and old-save migration.
-- A browser controller plays the complete first level using movement inputs, crosses hazards, enters the print shop, answers both prompts and unlocks chapter two. It does not teleport or alter scores.
-- Browser checks cover audio synthesis after Play, saved mute, keyboard and touch movement, pause, conversation dismissal, collected pages and reload.
+- Browser controllers clear full levels using the bow, axe, boomerang and comet staff with movement and attack inputs. They cross hazards, defeat guardians and unlock the next chapter. The extra loadout tests start with a valid unlocked save; they do not teleport during play or alter combat outcomes.
+- Browser checks cover audio synthesis after Play, saved mute, keyboard and touch movement, pause, conversation dismissal, saved checkpoints and reload.
 - Best times are recorded only for levels started from the beginning, so a resumed checkpoint cannot produce a misleading record.
 - Platform mechanics and artwork are explicitly described as imaginative in Settings and the README; historical facts retain their source references.
 

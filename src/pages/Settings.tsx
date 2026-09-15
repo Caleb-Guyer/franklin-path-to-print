@@ -48,7 +48,7 @@ export default function Settings() {
               [
                 'narration',
                 'Spoken dialogue',
-                'Read conversations, page memories and questions aloud.',
+                'Read guide conversations and study questions aloud.',
                 Volume2,
               ],
               [
@@ -172,8 +172,8 @@ export default function Settings() {
           </p>
           <p>
             References use PDF spread numbers. Dialogue is labeled paraphrase; atmosphere and
-            artwork are imaginative. Platforming routes, ink creatures and movement abilities are
-            playful inventions; collected pages and conversations use the source. Uncertain dates
+            artwork are imaginative. Weapons, combat arenas, the story guide and ink creatures are
+            playful inventions; guide summaries and study questions use the source. Uncertain dates
             and reports remain qualified. The thirteen-virtue program from outside this excerpt is
             not included.
           </p>

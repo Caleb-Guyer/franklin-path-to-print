@@ -62,12 +62,11 @@ test('spoken conversations reveal text, skip, replay, hold, auto-advance and duc
   await controlledVoice(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.locator('.compact-conversation')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => !!window.testVoice.current)).toBe(true);
+  await expect(page.locator('.compact-conversation')).toHaveCount(0);
   await page.keyboard.press('e');
   const dialogue = page.locator('.platform-dialogue');
   await expect(dialogue).toBeVisible();
-  await expect(dialogue.locator('.conversation-heading')).toContainText('1 / 7');
+  await expect(dialogue.locator('.conversation-heading')).toContainText('1 / 2');
   const total = await dialogue.locator('.talk-letter').count();
   expect(await dialogue.locator('.talk-letter.revealed').count()).toBeLessThan(total);
   await dialogue.getByRole('button', { name: 'Reveal full line' }).click();
@@ -75,20 +74,20 @@ test('spoken conversations reveal text, skip, replay, hold, auto-advance and duc
   await expect.poll(() => page.evaluate(() => window.testVoice.gains.includes(0.022))).toBe(true);
   await dialogue.getByRole('button', { name: 'Auto', exact: true }).click();
   await page.evaluate(() => window.testVoice.finish());
-  await expect(dialogue.locator('.conversation-heading')).toContainText('1 / 7');
+  await expect(dialogue.locator('.conversation-heading')).toContainText('1 / 2');
   await dialogue.getByRole('button', { name: 'Replay this line' }).click();
   await expect.poll(() => page.evaluate(() => !!window.testVoice.current)).toBe(true);
   await dialogue.getByRole('button', { name: 'Next line' }).click();
-  await expect(dialogue.locator('.conversation-heading')).toContainText('2 / 7');
+  await expect(dialogue.locator('.conversation-heading')).toContainText('2 / 2');
   await dialogue.getByRole('button', { name: 'Hold', exact: true }).click();
   // A cancelled engine callback must never advance the newer line.
   await page.evaluate(() => {
     const stale = window.testVoice.lines.at(-2)!;
     stale.onend?.call(stale, new Event('end') as SpeechSynthesisEvent);
   });
-  await expect(dialogue.locator('.conversation-heading')).toContainText('2 / 7');
+  await expect(dialogue.locator('.conversation-heading')).toContainText('2 / 2');
   await page.evaluate(() => window.testVoice.finish());
-  await expect(dialogue.locator('.conversation-heading')).toContainText('3 / 7');
+  await expect(dialogue.getByRole('button', { name: 'Let’s go', exact: true })).toBeVisible();
   await dialogue.getByRole('button', { name: 'Mute narration' }).click();
   expect(await page.evaluate(() => !!window.testVoice.current)).toBe(false);
   expect(
@@ -164,7 +163,7 @@ test('phone dialogue remains usable without speech and respects reduced motion',
   );
   await expect(dialogue.getByRole('button', { name: 'Reveal full line' })).toHaveCount(0);
   await dialogue.getByRole('button', { name: 'Next line' }).click();
-  await expect(dialogue.locator('.conversation-heading')).toContainText('2 / 7');
+  await expect(dialogue.locator('.conversation-heading')).toContainText('2 / 2');
   expect(
     await dialogue
       .locator('.talk-letter')

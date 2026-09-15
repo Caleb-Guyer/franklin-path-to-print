@@ -1,7 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { questions } from '../../src/data/questions';
-import { multipleChoice } from '../../src/lib/choices';
 import type { PlatformGame } from '../../src/game/platformer';
+import { freshSave } from '../../src/lib/game';
 
 declare global {
   interface Window {
@@ -10,7 +9,6 @@ declare global {
   }
 }
 const saveKey = 'franklin-path-to-print-v1';
-const presentedQuestions = new Map(questions.map(multipleChoice).map((q) => [q.prompt, q]));
 async function observeGame(page: Page) {
   // Attach read access in the test browser only; the shipped game has no test shortcuts.
   await page.evaluate(async () => {
@@ -32,15 +30,61 @@ async function play(page: Page) {
   await expect(page.locator('.platform-shell')).toHaveClass(/is-playing/);
   await expect.poll(() => page.evaluate(() => !!window.platformTestGame)).toBe(true);
 }
-async function answerPress(page: Page) {
-  const prompt = await page.locator('.question-card > h2').innerText();
-  const q = presentedQuestions.get(prompt)!;
-  const options = await page.locator('.answer-option-text').allTextContents();
-  await page.getByRole('radio').nth(options.indexOf(q.answer)).click();
-  await page.locator('.next-answer').click();
+async function completeCombatLevel(page: Page) {
+  return await page.evaluate(
+    () =>
+      new Promise<{ finished: boolean; x: number; deaths: number }>((resolve) => {
+        const game = window.platformTestGame,
+          start = performance.now();
+        function frame() {
+          if (game.finished || performance.now() - start > 75000) {
+            game.release('right');
+            game.release('jump');
+            game.release('attack');
+            resolve({ finished: game.finished, x: game.player.x, deaths: game.deaths });
+            return;
+          }
+          const p = game.player;
+          const target = game.world.enemies
+            .filter((e) => e.alive && e.x > p.x - 30 && e.x - p.x < 420)
+            .sort((a, b) => a.x - b.x)[0];
+          const weapon = game.world.weapon;
+          const distance =
+            weapon.speed === 0 || weapon.kind === 'hammer' ? weapon.reach * 0.75 : 260;
+          const shouldFight =
+            !!target &&
+            Math.abs(target.x - p.x) < distance &&
+            Math.abs(target.y - p.y) < 100 &&
+            p.grounded;
+          game.press('attack');
+          game.release('left');
+          game.release('right');
+          const direction = target && target.x < p.x ? 'left' : 'right';
+          if (!shouldFight || p.facing !== (direction === 'right' ? 1 : -1)) game.press(direction);
+          const standing = game.world.platforms.find(
+            (s) => Math.abs(s.y - p.y - p.h) < 3 && p.x + p.w > s.x && p.x < s.x + s.w,
+          );
+          game.release('jump');
+          if (
+            (p.grounded && standing && standing.x + standing.w - p.x < 100) ||
+            (!p.grounded && p.vy > 100 && p.y > 400 && p.jumps < 2)
+          )
+            game.press('jump');
+          else if (p.vy < 0) game.controls.jump = true;
+          game.release('dash');
+          if (target && target.state === 'windup' && target.x - p.x < 150) game.press('jump');
+          if (p.x > game.world.exit.x - 50) {
+            game.press('right');
+            game.press('interact');
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }),
+  );
 }
 
-test('keyboard movement, source conversations, audio, pause, and saved pickups work', async ({
+test('keyboard movement, source conversations, audio, pause, and saved checkpoints work', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -61,7 +105,7 @@ test('keyboard movement, source conversations, audio, pause, and saved pickups w
   await expect
     .poll(() =>
       page.evaluate(
-        (k) => JSON.parse(localStorage.getItem(k)!).platformer.collected.length,
+        (k) => Object.keys(JSON.parse(localStorage.getItem(k)!).platformer.checkpoints).length,
         saveKey,
       ),
     )
@@ -105,73 +149,34 @@ test('keyboard movement, source conversations, audio, pause, and saved pickups w
   expect(errors).toEqual([]);
 });
 
-test('a full level can be played through, printed, saved, and followed by the next chapter', async ({
+test('combat clears a full level, saves progress and equips the next chapter weapon', async ({
   page,
 }) => {
   await play(page);
   // A controller uses only the public button inputs and observes geometry. It does not
   // teleport the player, remove hazards, collect pages directly, or change scores.
-  const result = await page.evaluate(
-    () =>
-      new Promise<{ finished: boolean; x: number; deaths: number }>((resolve) => {
-        const game = window.platformTestGame,
-          start = performance.now();
-        function frame() {
-          if (game.finished || performance.now() - start > 55000) {
-            game.release('right');
-            game.release('jump');
-            resolve({ finished: game.finished, x: game.player.x, deaths: game.deaths });
-            return;
-          }
-          const p = game.player;
-          game.press('right');
-          const standing = game.world.platforms.find(
-            (s) => Math.abs(s.y - p.y - p.h) < 3 && p.x + p.w > s.x && p.x < s.x + s.w,
-          );
-          game.release('jump');
-          if (
-            (p.grounded && standing && standing.x + standing.w - p.x < 100) ||
-            (!p.grounded && p.vy > 100 && p.y > 400 && p.jumps < 2)
-          )
-            game.press('jump');
-          else if (p.vy < 0) game.controls.jump = true;
-          game.release('dash');
-          if (
-            game.world.enemies.some(
-              (e) => e.alive && e.x > p.x && e.x - p.x < 90 && Math.abs(p.y - e.y) < 70,
-            )
-          )
-            game.press('dash');
-          if (p.x > game.world.exit.x - 50) {
-            game.release('right');
-            game.press('interact');
-          }
-          requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-      }),
-  );
+  const result = await completeCombatLevel(page);
   expect(result.finished, JSON.stringify(result)).toBe(true);
-  await expect(page.getByRole('dialog', { name: 'At the press · 1 / 2' })).toBeVisible();
-  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await page.getByRole('button', { name: 'Resume', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'At the press · 1 / 2' })).toBeVisible();
-  await answerPress(page);
-  await answerPress(page);
   await expect(page.locator('.platform-complete')).toBeVisible();
-  await expect(page.locator('.level-results')).toContainText('2/2');
+  const resultStats = await page.evaluate(() => ({
+    kills: window.platformTestGame.combat.kills,
+    gates: window.platformTestGame.world.gates.map((g) => g.open),
+  }));
+  expect(resultStats.kills).toBeGreaterThanOrEqual(5);
+  expect(resultStats.gates).toEqual([true, true]);
   const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), saveKey);
   expect(saved.platformer.completed).toContain(0);
   expect(saved.platformer.unlocked).toBe(1);
-  expect(saved.platformer.collected.length).toBeGreaterThan(3);
+  expect(saved.unlockedCards.length).toBeGreaterThan(5);
   expect(saved.platformer.bestTimes[0]).toBeGreaterThan(5);
-  expect(saved.history).not.toEqual({});
   await page.getByRole('button', { name: 'Next chapter', exact: true }).click();
   await expect(page.locator('.hud-chapter')).toHaveText('II');
+  await expect(page.locator('.weapon-badge')).toContainText('Woodcutter’s axe');
   await expect(page.locator('.platform-shell')).toHaveClass(/is-playing/);
   await page.reload();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.locator('.hud-chapter')).toHaveText('II');
+  await expect(page.locator('.weapon-badge')).toContainText('Woodcutter’s axe');
 });
 
 test('mobile touch controls move Franklin without overflowing or leaving a stuck input', async ({
@@ -187,6 +192,13 @@ test('mobile touch controls move Franklin without overflowing or leaving a stuck
   await page.mouse.up();
   expect(await page.evaluate(() => window.platformTestGame.player.x)).toBeGreaterThan(initial + 80);
   expect(await page.evaluate(() => window.platformTestGame.controls.right)).toBe(false);
+  await page.getByRole('button', { name: 'Attack', exact: true }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.platformTestGame.combat.projectiles.some((s) => !s.enemy)),
+    )
+    .toBe(true);
+  expect(await page.evaluate(() => window.platformTestGame.controls.attack)).toBe(false);
   await page.getByRole('button', { name: 'Jump', exact: true }).click();
   await page.screenshot({ path: 'test-results/platformer-mobile.png' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
@@ -195,4 +207,33 @@ test('mobile touch controls move Franklin without overflowing or leaving a stuck
   await page.getByRole('button', { name: 'Chapters', exact: true }).click();
   await expect(page.locator('.platform-levels button')).toHaveCount(12);
   await expect(page.locator('.platform-levels button').nth(1)).toBeDisabled();
+});
+
+test('axe, returning boomerang and comet staff each complete a real combat level', async ({
+  page,
+}) => {
+  test.setTimeout(300000);
+  for (const level of [1, 3, 11]) {
+    await page.goto('/');
+    const save = freshSave();
+    save.platformer.level = level;
+    save.platformer.unlocked = 11;
+    save.platformer.checkpoints[level] = 0;
+    await page.evaluate(({ key, save }) => localStorage.setItem(key, JSON.stringify(save)), {
+      key: saveKey,
+      save,
+    });
+    await page.reload();
+    await observeGame(page);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => window.platformTestGame?.world.level)).toBe(level);
+    const result = await completeCombatLevel(page);
+    expect(result.finished, `level ${level + 1}: ${JSON.stringify(result)}`).toBe(true);
+    await expect(page.locator('.platform-complete')).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => window.platformTestGame.world.enemies.find((e) => e.kind === 'guardian')!.alive,
+      ),
+    ).toBe(false);
+  }
 });
