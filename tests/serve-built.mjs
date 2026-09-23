@@ -14,7 +14,7 @@ http
   .createServer(async (req, res) => {
     try {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-      const mount = ['/franklin-path-to-print/', '/franklin-part-one-game/'].find((m) =>
+      const mount = ['/dual-credit-ela-iii/', '/dual-credit-ela-iii-game/'].find((m) =>
         pathname.startsWith(m),
       );
       if (!mount) {
@@ -41,5 +41,5 @@ http
     }
   })
   .listen(4174, '127.0.0.1', () =>
-    console.log('GitHub Pages subpath simulation: http://127.0.0.1:4174/franklin-path-to-print/'),
+    console.log('GitHub Pages subpath simulation: http://127.0.0.1:4174/dual-credit-ela-iii/'),
   );

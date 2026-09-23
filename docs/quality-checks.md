@@ -36,7 +36,7 @@
 - Exam test answers 18 of 20 correctly, checks 90%, saved mistakes and achievement, retries misses and reloads the save.
 - UI tests exercise every major screen and 390px phone layout, scan viewing, mobile navigation and confirmed/cancelled reset.
 - Additional browser flows verify all 272 Franklin questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Nineteen browser tests cover the collection, Douglass campaign, Franklin learning tools, and platformer.
-- Production tests request the PDF and every scan and refresh hash routes under both `/franklin-path-to-print/` and `/franklin-part-one-game/`.
+- Production tests request the PDF and every scan and refresh hash routes under both `/dual-credit-ela-iii/` and `/dual-credit-ela-iii-game/`.
 
 ## Dialogue and multiple-choice checks
 

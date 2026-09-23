@@ -22,7 +22,7 @@ export default defineConfig({
     },
     {
       command: 'node tests/serve-built.mjs',
-      url: 'http://127.0.0.1:4174/franklin-path-to-print/',
+      url: 'http://127.0.0.1:4174/dual-credit-ela-iii/',
       reuseExistingServer: !process.env.CI,
     },
   ],

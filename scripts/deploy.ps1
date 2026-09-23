@@ -22,7 +22,7 @@ try {
     Assert-NativeSuccess 'Initializing Git'
     git add .
     Assert-NativeSuccess 'Staging the game'
-    git commit -m 'Build the complete source-linked Franklin learning adventure'
+    git commit -m 'Build the Dual Credit ELA III game collection'
     Assert-NativeSuccess 'Creating the initial commit'
   }
   $branch = (git branch --show-current).Trim()
@@ -38,11 +38,11 @@ try {
     }
     $owner = $Matches[1]
     $repository = $Matches[2]
-    if ($owner -ne $account -or $repository -notin @('franklin-path-to-print','franklin-part-one-game')) {
+    if ($owner -ne $account -or $repository -notin @('dual-credit-ela-iii','dual-credit-ela-iii-game')) {
       throw 'The existing origin does not match the authenticated account and requested repository names.'
     }
   } else {
-    foreach ($candidate in @('franklin-path-to-print','franklin-part-one-game')) {
+    foreach ($candidate in @('dual-credit-ela-iii','dual-credit-ela-iii-game')) {
       $existing = $null
       try { $existing = gh repo view "$account/$candidate" --json name --jq .name 2>$null } catch { $existing = $null }
       if (-not $existing) { $repository = $candidate; break }

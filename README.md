@@ -2,12 +2,12 @@
 
 A browser game collection for Dual Credit English Language Arts III. The launch screen lets you choose a work; each campaign has its own progress and learning tools.
 
-**[Play the collection](https://caleb-guyer.github.io/franklin-path-to-print/)**
+**[Play the collection](https://caleb-guyer.github.io/dual-credit-ela-iii/)**
 
-| Work               | Campaign                                                                           | Scope                                                                              |
-| ------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Benjamin Franklin  | [The Path to Print](https://caleb-guyer.github.io/franklin-path-to-print/#home)    | The supplied Part One PDF; 12 combat levels and optional detailed study            |
-| Frederick Douglass | [A Voice Unbroken](https://caleb-guyer.github.io/franklin-path-to-print/#douglass) | Chapters I–III of the 1845 _Narrative_; three mission genres and a final challenge |
+| Work               | Campaign                                                                        | Scope                                                                              |
+| ------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Benjamin Franklin  | [The Path to Print](https://caleb-guyer.github.io/dual-credit-ela-iii/#home)    | The supplied Part One PDF; 12 combat levels and optional detailed study            |
+| Frederick Douglass | [A Voice Unbroken](https://caleb-guyer.github.io/dual-credit-ela-iii/#douglass) | Chapters I–III of the 1845 _Narrative_; three mission genres and a final challenge |
 
 ![ELA III course collection](docs/screenshots/ela-hub.png)
 
@@ -129,9 +129,9 @@ No external summaries or biographical sources were used for game facts. Uncertai
 
 ## Publish to GitHub Pages
 
-Repository: [Caleb-Guyer/franklin-path-to-print](https://github.com/Caleb-Guyer/franklin-path-to-print).
+Repository: [Caleb-Guyer/dual-credit-ela-iii](https://github.com/Caleb-Guyer/dual-credit-ela-iii).
 
-Game collection: [Dual Credit ELA III](https://caleb-guyer.github.io/franklin-path-to-print/). GitHub Actions publishes verified updates from `main`; [deployment status](https://github.com/Caleb-Guyer/franklin-path-to-print/actions/workflows/deploy.yml) is available in the repository.
+Game collection: [Dual Credit ELA III](https://caleb-guyer.github.io/dual-credit-ela-iii/). GitHub Actions publishes verified updates from `main`; [deployment status](https://github.com/Caleb-Guyer/dual-credit-ela-iii/actions/workflows/deploy.yml) is available in the repository.
 
 The instructions below also support publishing your own copy.
 
@@ -150,7 +150,7 @@ In this project directory:
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy.ps1
 ```
 
-The script creates the public repository **`franklin-path-to-print`** under the authenticated account, or **`franklin-part-one-game`** if the first name exists. It does not overwrite either existing repository. It pushes `main`, enables Pages with the workflow build type, and prints the actual repository and Pages URLs. The zip download also works: the script initializes and commits a repository when `.git` is absent. Git must have a configured author name and email for that first commit.
+The script creates the public repository **`dual-credit-ela-iii`** under the authenticated account, or **`dual-credit-ela-iii-game`** if the first name exists. It does not overwrite either existing repository. It pushes `main`, enables Pages with the workflow build type, and prints the actual repository and Pages URLs. The zip download also works: the script initializes and commits a repository when `.git` is absent. Git must have a configured author name and email for that first commit.
 
 ### Manual commands (any platform)
 
@@ -159,12 +159,12 @@ After `gh auth login`, initialize and commit only if using an extracted source z
 ```sh
 git init -b main
 git add .
-git commit -m "Build the complete source-linked Franklin learning adventure"
-gh repo create franklin-path-to-print --public --source . --remote origin --push
+git commit -m "Build the Dual Credit ELA III game collection"
+gh repo create dual-credit-ela-iii --public --source . --remote origin --push
 gh api --method POST repos/{owner}/{repo}/pages -f build_type=workflow
 ```
 
-`gh api` resolves `{owner}` and `{repo}` from the current repository. If the name is taken, substitute `franklin-part-one-game` in the create command. In GitHub **Settings → Pages → Build and deployment**, the source should be **GitHub Actions**. If the first run began before Pages was enabled, run:
+`gh api` resolves `{owner}` and `{repo}` from the current repository. If the name is taken, substitute `dual-credit-ela-iii-game` in the create command. In GitHub **Settings → Pages → Build and deployment**, the source should be **GitHub Actions**. If the first run began before Pages was enabled, run:
 
 ```sh
 gh workflow run deploy.yml --ref main
