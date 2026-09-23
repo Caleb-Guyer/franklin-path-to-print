@@ -24,6 +24,8 @@ import Story from './pages/Story';
 import Quiz, { bossConfig, type SessionConfig } from './pages/Quiz';
 import { Characters, Collection, Journal, LocationMap, Study, Timeline } from './pages/Library';
 import SettingsPage from './pages/Settings';
+import CourseHub from './pages/CourseHub';
+import DouglassCampaign from './douglass/Campaign';
 const nav = [
   ['home', 'Play', Feather],
   ['story', 'Story', Compass],
@@ -37,7 +39,7 @@ const nav = [
   ['exam', 'Final exam', GraduationCap],
   ['settings', 'Settings', Settings],
 ] as const;
-const routes = new Set<string>([...nav.map((x) => x[0]), 'arena']);
+const routes = new Set<string>([...nav.map((x) => x[0]), 'arena', 'course', 'douglass']);
 export default function App() {
   const [source, setSource] = useState<number[] | null>(null);
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -65,7 +67,7 @@ export default function App() {
 }
 function readRoute() {
   const hash = location.hash.slice(1);
-  return routes.has(hash) || /^story\/(?:[1-9]|1[0-2])$/.test(hash) ? hash : 'home';
+  return routes.has(hash) || /^story\/(?:[1-9]|1[0-2])$/.test(hash) ? hash : 'course';
 }
 function AppShell() {
   const [path, setPath] = useState(readRoute);
@@ -86,6 +88,13 @@ function AppShell() {
     return () => window.removeEventListener('hashchange', handle);
   }, []);
   useEffect(() => {
+    if (route === 'course' || route === 'douglass') {
+      document.title =
+        route === 'course'
+          ? 'Dual Credit ELA III · Choose your story'
+          : 'A Voice Unbroken · Frederick Douglass';
+      return;
+    }
     document.title =
       (route === 'home'
         ? 'FRANKLIN'
@@ -156,6 +165,8 @@ function AppShell() {
     setPath('arena');
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
+  if (route === 'course') return <CourseHub />;
+  if (route === 'douglass') return <DouglassCampaign />;
   if (route === 'home') return <Platformer />;
   return (
     <div className="app-shell">
@@ -177,6 +188,9 @@ function AppShell() {
         />
       )}
       <aside className={'sidebar ' + (menu ? 'open' : '')}>
+        <a className="course-back" href="#course">
+          ← ELA III collection
+        </a>
         <a href="#home" className="brand-mark">
           F
           <span>
@@ -281,8 +295,8 @@ function ResetDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog title="Begin with a clean page?" onClose={onClose}>
       <p>
-        This erases your current local save: journey, XP, cards, achievements, question history and
-        exam results. Export a copy from Settings first if you want to keep it.
+        This erases your Franklin save: journey, XP, cards, achievements, question history and exam
+        results. Export a copy from Settings first if you want to keep it.
       </p>
       <div className="button-row">
         <button className="button" onClick={onClose}>
@@ -296,7 +310,7 @@ function ResetDialog({ onClose }: { onClose: () => void }) {
             onClose();
           }}
         >
-          Reset everything
+          Reset Franklin progress
         </button>
       </div>
     </Dialog>

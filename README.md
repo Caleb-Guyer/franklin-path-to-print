@@ -1,4 +1,47 @@
-# FRANKLIN: THE PATH TO PRINT
+# Dual Credit ELA III
+
+A browser game collection for Dual Credit English Language Arts III. The launch screen lets you choose a work; each campaign has its own progress and learning tools.
+
+**[Play the collection](https://caleb-guyer.github.io/franklin-path-to-print/)**
+
+| Work               | Campaign                                                                           | Scope                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Benjamin Franklin  | [The Path to Print](https://caleb-guyer.github.io/franklin-path-to-print/#home)    | The supplied Part One PDF; 12 combat levels and optional detailed study            |
+| Frederick Douglass | [A Voice Unbroken](https://caleb-guyer.github.io/franklin-path-to-print/#douglass) | Chapters I–III of the 1845 _Narrative_; three mission genres and a final challenge |
+
+![ELA III course collection](docs/screenshots/ela-hub.png)
+
+The existing repository name and Pages address are retained so previously shared links continue to work. `#home` opens Franklin directly; the root address and `#course` open the collection.
+
+## Douglass: A Voice Unbroken
+
+An atmospheric story campaign in three perspectives:
+
+1. **A name of my own** — moonlit platforming, double jumps, dashes, and four remembered moments about identity, family separation, and the first encounter with slavery’s violence.
+2. **What the songs carry** — a steerable river run with currents, rocks, bonus rings, braking, and a rechargeable surge. Testimony connects plantation wealth, deprivation, the Great House Farm, and the meaning of the songs.
+3. **The price of truth** — a first-person raycast estate with a held lantern, cover, moving symbolic veils, an objective compass, and a small map. Inspect the garden, stables, roadside encounter, and surveillance behind enforced silence.
+
+The campaign has **12 story moments**, short animated dialogue, browser narration with replay, original instrumental music that lowers under speech, checkpoints, mission scores, replay, a discovered-story archive, relaxed challenge, and reduced motion. Falls or lost focus return the player to a checkpoint. The final light leads to a **20-question multiple-choice challenge** selected from **36 questions**, balanced across all three chapters. Results include percentage, grade, topic strengths, every missed answer with an explanation and source, and a retry-missed round. Keys 1–4 answer questions without a confidence step.
+
+### Douglass controls
+
+| Mission                    | Keyboard                                                   | Phone/tablet                                         |
+| -------------------------- | ---------------------------------------------------------- | ---------------------------------------------------- |
+| Moonlit platformer         | A/D move, Space double jump, Shift dash                    | Move, dash, jump buttons                             |
+| River navigation           | A/D steer, Shift surge, Space slow                         | Steering, surge, slow buttons                        |
+| First-person investigation | WASD move, arrows or drag to look, E inspect, Shift sprint | Direction/turn buttons, drag to look, inspect button |
+| Dialogue                   | Reveal/Next, Enter, replay and voice buttons               | The same on-screen controls                          |
+| Pause                      | Escape or pause icon                                       | Pause icon                                           |
+
+### Douglass source and adaptation
+
+The primary text is Frederick Douglass’s _Narrative of the Life of Frederick Douglass, an American Slave_ (1845), **Chapters I, II, and III**, from the [Project Gutenberg transcript](https://www.gutenberg.org/files/23/23-h/23-h.htm#link2HCH0001). No Douglass class excerpt was supplied. All three chapters were read before the script and questions were authored. Their complete public-domain text is bundled in `src/douglass/source.json`, so the in-game evidence viewer works without another network request.
+
+Each dialogue line and question has chapter/paragraph references such as `2.11`. The paragraph numbers identify the bundled transcript, not an edition’s printed page numbers. [The source outline](docs/douglass-source-outline.md) records coverage and adaptation decisions. The game distinguishes paraphrase from the brief exact reported exchange in Chapter III, preserves uncertainty about Douglass’s father, and treats the roadside story as a reported account.
+
+Movement challenges, veils, lantern objectives, river navigation, estate geometry, and mission scores are fictional devices. The game does not claim that Douglass made an escape, piloted the Sally Lloyd, or fought a battle in these chapters. Historical violence is recounted through the narrator’s words, without a playable reenactment of abuse. The instrumental music is original, not a reproduction of the historical songs.
+
+## Franklin: The Path to Print
 
 ### Part One — The Apprentice
 
@@ -6,7 +49,7 @@ Play as Franklin in a **2D platform adventure**: leap across rooftops, fight ink
 
 ![Franklin platform adventure](docs/screenshots/home.png)
 
-## What is inside
+### What is inside
 
 - **12 combat platforming levels**, each with a different weapon: bow, axe, rapier, boomerang, hammer, spear, throwing daggers, crossbow, wind fan, glaive, scatter blaster and comet staff.
 - Charging skitters, ranged sentries, flyers and a guardian. Enemies telegraph attacks; weapons have distinct ranges, timing, projectiles, piercing, return hits or area effects. Defeating an encounter opens its barrier.
@@ -25,7 +68,7 @@ Play as Franklin in a **2D platform adventure**: leap across rooftops, fight ink
 - Browser saves, save export/import, confirmed reset, optional music and speech, reduced motion, large text, keyboard answer controls and mobile navigation.
 - Full source PDF and all 27 readable scan images available inside the game. No external fonts, images, accounts or backend. Music is synthesized locally; narration uses the browser’s speech engine.
 
-## Controls
+### Franklin controls
 
 | Action                  | Keyboard              |
 | ----------------------- | --------------------- |
@@ -76,9 +119,9 @@ Narration uses available English device/browser voices and prefers local voices.
 
 ![Spoken character dialogue](docs/screenshots/dialogue.png)
 
-## Canonical source and accuracy
+## Franklin canonical source and accuracy
 
-The only historical source is the user-provided **`Franklin Part 1.pdf`**, supplied under that filename even though the request also referred to “Franklin Part 1(2).pdf.” It is 27 scanned PDF spreads covering printed Part One pages 1–53. Every spread was rendered and visually inspected before content authoring. Machine extraction returned no text on all 27 pages.
+The only historical source for Franklin is the user-provided **`Franklin Part 1.pdf`**, supplied under that filename even though the request also referred to “Franklin Part 1(2).pdf.” It is 27 scanned PDF spreads covering printed Part One pages 1–53. Every spread was rendered and visually inspected before content authoring. Machine extraction returned no text on all 27 pages.
 
 [The complete page-by-page source outline](docs/source-outline.md) records the extraction before conversion to scenes and questions. Every fact, question, scene, character and location has `sourcePages`. These are **PDF spread numbers 1–27**, not printed book page numbers. Source buttons open the actual scans so the reader can verify details.
 
@@ -88,7 +131,7 @@ No external summaries or biographical sources were used for game facts. Uncertai
 
 Repository: [Caleb-Guyer/franklin-path-to-print](https://github.com/Caleb-Guyer/franklin-path-to-print).
 
-Game: [Franklin: The Path to Print](https://caleb-guyer.github.io/franklin-path-to-print/). GitHub Actions publishes verified updates from `main`; [deployment status](https://github.com/Caleb-Guyer/franklin-path-to-print/actions/workflows/deploy.yml) is available in the repository.
+Game collection: [Dual Credit ELA III](https://caleb-guyer.github.io/franklin-path-to-print/). GitHub Actions publishes verified updates from `main`; [deployment status](https://github.com/Caleb-Guyer/franklin-path-to-print/actions/workflows/deploy.yml) is available in the repository.
 
 The instructions below also support publishing your own copy.
 
@@ -137,7 +180,9 @@ npm run check
 npm run test:e2e
 ```
 
-`check` runs formatting, TypeScript, 36 unit/data/physics/combat/speech-format tests and the production build. Fourteen browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
+`check` runs formatting, TypeScript, 42 unit/data/physics/combat/speech-format tests and the production build. Nineteen browser tests use installed Microsoft Edge on Windows; on macOS/Linux first run `npx playwright install chromium`. CI installs Chromium and its system dependencies automatically.
+
+Douglass tests play all three missions using movement controls, advance every dialogue, complete a 20-question challenge with a deliberate miss, verify the 95% grade, retry the miss, and check saved results. They also cover primary-text references, exact quotations, estate reachability, ray/wall collision, chapter-balanced quiz selection, independent campaign saves, touch input, pause, checkpoint reload, source viewing, and deployed-subpath refresh.
 
 Browser tests play full combat levels with bow, axe, boomerang and comet staff through actual movement/attack inputs, then verify defeated guardians, open barriers, saved progression and the next weapon. They test music, keyboard/touch controls, pause, the single short guide conversation and saved checkpoints. Voice tests verify line reveal, replay, auto/hold, cancellation, music ducking, immediate choice scoring, no confidence step and speech-unavailable fallback. They also cover every screen, 390px mobile overflow, source image viewing, scoring, retries, persistence, confirmed reset, all 60 scenes and 12 chapter trials, and both production repository subpaths. [Validation details](docs/quality-checks.md).
 
@@ -146,15 +191,17 @@ Browser tests play full combat levels with bow, axe, boomerang and comet staff t
 ```text
 src/
   data/           Facts, questions, chapters, events, people, places, cards
+  douglass/       Three-genre campaign, renderer, dialogue, music, quiz, saves, complete chapter transcript and source-cited content
   components/     Save provider, accessible dialogs, source viewer, choice questions and animated conversations
   game/           Canvas artwork, weapon loadouts, combat, movement physics, worlds and original music
-  pages/          Platformer, story journal, quiz/bosses, library tools and settings
+  pages/          Course hub, Franklin platformer, story journal, quiz/bosses, library tools and settings
   lib/            Choice conversion, speech, grading, adaptive review, saves and tests
   App.tsx         Hash navigation and optional WebMCP integration
   styles.css      Main visual design
   game.css        Study screens and responsive layouts
   platformer.css  Minimal game HUD, title screen, overlays and touch controls
   dialogue.css    Talking portraits, typewriter text and compact speech controls
+  course.css      ELA III collection launcher
 public/
   source/         Canonical PDF and all 27 scan images
   press-room.svg  Original decorative artwork
@@ -164,7 +211,7 @@ tests/            Browser journeys and production subpath server
 .github/workflows/deploy.yml
 ```
 
-Built with React, Vite, TypeScript, Canvas 2D, Web Audio and CSS. The small runtime icon dependency is Lucide. Progress uses the `franklin-path-to-print-v1` localStorage key; it is tied to this browser and origin. Completed answers save immediately. Leaving or refreshing an unfinished quiz starts a new round while retaining those answer records. Export from Settings to move a save between browsers or from the local preview to Pages.
+Built with React, Vite, TypeScript, Canvas 2D (including the first-person raycaster), Web Audio and CSS. The small runtime icon dependency is Lucide. Progress is tied to this browser and origin: Franklin uses `franklin-path-to-print-v1`; Douglass uses `ela-iii-douglass-v1`. The course hub does not overwrite either save. Douglass resumes from the last completed story moment; completed exams and missed questions save at the result screen. Leaving an unfinished Douglass quiz starts a new round. Franklin’s Settings retain save export/import.
 
 ## Content and asset ownership
 

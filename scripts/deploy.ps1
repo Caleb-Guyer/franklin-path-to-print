@@ -48,7 +48,7 @@ try {
       if (-not $existing) { $repository = $candidate; break }
     }
     if (-not $repository) { throw 'Both requested repository names already exist. No existing repository was changed.' }
-    gh repo create "$account/$repository" --public --source . --remote origin --description 'A source-linked narrative game for all 27 scanned spreads of Franklin Part One'
+    gh repo create "$account/$repository" --public --source . --remote origin --description 'Dual Credit ELA III: Benjamin Franklin and Frederick Douglass story campaigns'
     Assert-NativeSuccess 'Creating the repository'
   }
   git push -u origin main

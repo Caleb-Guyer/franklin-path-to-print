@@ -60,7 +60,7 @@ test('spoken conversations reveal text, skip, replay, hold, auto-advance and duc
   page,
 }) => {
   await controlledVoice(page);
-  await page.goto('/');
+  await page.goto('/#home');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.locator('.compact-conversation')).toHaveCount(0);
   await page.keyboard.press('e');
@@ -152,7 +152,7 @@ test('phone dialogue remains usable without speech and respects reduced motion',
     Reflect.deleteProperty(window, 'speechSynthesis');
     Reflect.deleteProperty(window, 'SpeechSynthesisUtterance');
   });
-  await page.goto('/');
+  await page.goto('/#home');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await page.keyboard.press('e');
   const dialogue = page.locator('.platform-dialogue');

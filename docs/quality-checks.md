@@ -1,5 +1,18 @@
 # Verification record
 
+## ELA III collection and Douglass campaign
+
+- Root and `#course` open the work selector. `#home` retains the Franklin launcher; `#douglass` opens the new campaign. Refreshes use hash navigation under the existing Pages address.
+- Separate localStorage keys keep both campaigns' saves independent. Douglass resumes from the last completed story moment, validates imported browser state, and requires confirmation for reset.
+- Douglass uses the complete primary transcript of Chapters I–III of the 1845 _Narrative_: 28 source paragraphs, 12 story moments, 25 short dialogue lines, and 36 multiple-choice questions.
+- Every line and question has a validated chapter/paragraph reference. Exact reported speech is checked against the source. The father's identity remains uncertain; later-chapter events are not imported.
+- Full browser playthrough uses actual movement controls to traverse the platformer, steer the river, navigate the first-person estate, inspect all testimonies, and reach the final challenge. It does not teleport, fabricate completion, or mutate the player state.
+- A 20-question run deliberately misses one answer, verifies 95%, retries that answer, verifies 100%, and checks stored completion, all 12 memories, exam history, and cleared misses.
+- Additional tests cover source viewing, mobile pointer input and release, pause, checkpoint reload, settings, canceled reset, and both campaigns' independent progress.
+- Dialogue testing checks progressive reveal, speech, replay, narration mute, cancellation, and lower music volume while speaking. Voice availability still depends on the browser/device; visible text is always available.
+- Geometry checks establish a traversable path to every estate objective and confirm ray and player collision at walls. Quiz checks require distinct choices and 7/7/6 chapter balance.
+- The platforming route, river run, estate layout, lantern objectives, and moving veils are explicitly fictional. The original score does not claim to reproduce the historical songs.
+
 ## Source coverage
 
 - Canonical input: `Franklin Part 1.pdf`, 27 scanned spreads, printed Part One pp. 1–53.
@@ -14,7 +27,7 @@
 ## Automated checks
 
 - `npm install` completed with a committed lockfile.
-- `npm run check`: TypeScript, 36 unit/data/physics/combat/speech-format tests, production build.
+- `npm run check`: TypeScript, 42 unit/data/physics/combat/speech-format/campaign tests, production build.
 - Data validation checks identifiers, page bounds, references, matching pairs, chronological order, scene coverage and question coverage per chapter.
 - Grading tests canonical answers, aliases, punctuation, number normalization, mistaken names, incomplete matching and incorrect chronology.
 - Memory tests cover wrong-answer priority, Trouble List removal, mastery, save serialization and corrupted-data recovery.
@@ -22,7 +35,7 @@
 - End-to-end tests actually answer all story recall prompts and all twelve 10-question trials, then verify all 60 scenes, 12 chapters and 252 cards are unlocked.
 - Exam test answers 18 of 20 correctly, checks 90%, saved mistakes and achievement, retries misses and reloads the save.
 - UI tests exercise every major screen and 390px phone layout, scan viewing, mobile navigation and confirmed/cancelled reset.
-- Additional browser flows verify all 272 questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Fourteen browser tests cover the learning tools and the platformer.
+- Additional browser flows verify all 272 Franklin questions in Everything mode, Easy recognition, timer pause/resume, flashcard flipping, collection filters and location-specific drills. Nineteen browser tests cover the collection, Douglass campaign, Franklin learning tools, and platformer.
 - Production tests request the PDF and every scan and refresh hash routes under both `/franklin-path-to-print/` and `/franklin-part-one-game/`.
 
 ## Dialogue and multiple-choice checks

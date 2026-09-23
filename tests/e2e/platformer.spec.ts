@@ -24,7 +24,7 @@ async function observeGame(page: Page) {
   });
 }
 async function play(page: Page) {
-  await page.goto('/');
+  await page.goto('/#home');
   await observeGame(page);
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.locator('.platform-shell')).toHaveClass(/is-playing/);
@@ -97,7 +97,7 @@ test('keyboard movement, source conversations, audio, pause, and saved checkpoin
       return create.call(this);
     };
   });
-  await page.goto('/');
+  await page.goto('/#home');
   expect(await page.evaluate(() => window.oscillatorCount)).toBe(0);
   await observeGame(page);
   await page.getByRole('button', { name: 'Play', exact: true }).click();
@@ -214,7 +214,7 @@ test('axe, returning boomerang and comet staff each complete a real combat level
 }) => {
   test.setTimeout(300000);
   for (const level of [1, 3, 11]) {
-    await page.goto('/');
+    await page.goto('/#home');
     const save = freshSave();
     save.platformer.level = level;
     save.platformer.unlocked = 11;

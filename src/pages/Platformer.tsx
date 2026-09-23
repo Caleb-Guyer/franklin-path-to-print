@@ -263,6 +263,9 @@ export default function Platformer() {
       )}
       {phase === 'title' && (
         <section className="platform-title">
+          <a className="course-back" href="#course">
+            ← ELA III collection
+          </a>
           <span className="platform-overline">PART ONE</span>
           <h1>
             FRANKLIN<span>THE PATH TO PRINT</span>

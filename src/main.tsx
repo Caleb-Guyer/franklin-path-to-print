@@ -5,6 +5,8 @@ import './styles.css';
 import './game.css';
 import './platformer.css';
 import './dialogue.css';
+import './course.css';
+import './douglass/campaign.css';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

@@ -20,7 +20,7 @@ test('all sections render, source scans open, mobile layout stays within the vie
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/#home');
   await expect(page.getByRole('heading', { name: 'FRANKLIN THE PATH TO PRINT' })).toBeVisible();
   await page.screenshot({
     path: 'test-results/home-desktop.png',
@@ -173,7 +173,7 @@ test('settings reset requires confirmation and cancel preserves the save', async
   await page.getByRole('button', { name: 'Keep my progress' }).click();
   expect(await page.evaluate((k) => localStorage.getItem(k), saveKey)).toBe(before);
   await page.getByRole('button', { name: 'Reset save', exact: true }).click();
-  await page.getByRole('button', { name: 'Reset everything' }).click();
+  await page.getByRole('button', { name: 'Reset Franklin progress' }).click();
   const after = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)!), saveKey);
   expect(after.xp).toBe(0);
   expect(after.unlockedCards).toHaveLength(0);
